@@ -2,10 +2,12 @@ pub mod systems;
 
 use systems::System;
 use systems::macos::MacOS;
+use crate::systems::detect_system;
 
 fn main() {
-    let mac = MacOS::new(false);
+    let system = detect_system(true);
 
-    mac.refresh();
-    //mac.upgrade();
+    system.refresh();
+
+    system.upgrade();
 }

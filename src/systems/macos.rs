@@ -1,11 +1,22 @@
 use crate::systems::System;
 use std::process::{Command, Stdio};
 
+impl Default for MacOS {
+    fn default() -> Self {
+        Self {
+            show_output: false,
+            brew: String::from("/opt/homebrew/bin/brew"),
+            refresh: Vec::from([String::from("update"), String::from("--force")]),
+            upgrade: Vec::from([String::from("upgrade")])
+        }
+    }
+}
+
 pub struct MacOS {
-    show_output: bool,
-    brew: String,
-    refresh: Vec<String>,
-    upgrade: Vec<String>
+    pub show_output: bool,
+    pub brew: String,
+    pub refresh: Vec<String>,
+    pub upgrade: Vec<String>
 }
 
 /*impl MacOS {
@@ -71,17 +82,8 @@ pub struct MacOS {
 
 }*/
 
+// TODO: Use "which" command to get location of brew
 impl System for MacOS {
-
-    fn new(show_output: bool) -> Self {
-        MacOS {
-            show_output,
-            brew: String::from("/opt/homebrew/bin/brew"),
-            refresh: Vec::from([String::from("update"), String::from("--force")]),
-            upgrade: Vec::from([String::from("help")])
-        }
-        // TODO: Use "which" command to get location of brew
-    }
 
     fn refresh(&self) {
 
