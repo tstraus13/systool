@@ -13,3 +13,6 @@ installing a package.
 ```shell
 systool pkg install [PACKAGE]
 ```
+
+Yes I know you could easily write a similar tool in whatever shell scripting language of your choice, but I wanted to
+learn more Rust.
