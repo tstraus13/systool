@@ -1,97 +1,32 @@
 use crate::systems::System;
-use std::process::{Command, Stdio};
+use std::process::{Command, ExitCode, Stdio};
 
 impl Default for MacOS {
     fn default() -> Self {
         Self {
             show_output: false,
-            brew: String::from("/opt/homebrew/bin/brew"),
-            refresh: Vec::from([String::from("update"), String::from("--force")]),
-            upgrade: Vec::from([String::from("upgrade")])
         }
     }
 }
 
 pub struct MacOS {
     pub show_output: bool,
-    pub brew: String,
-    pub refresh: Vec<String>,
-    pub upgrade: Vec<String>
 }
-
-/*impl MacOS {
-
-    pub fn new() -> Self {
-        let mut mac = MacOS {
-            version: String::from(""),
-            build: String::from("") 
-        };
-
-        mac.init();
-
-        return mac;
-    }
-
-    fn get_version(&mut self) {
-
-        let version_result = Command::new("sw_vers")
-            .arg("--productVersion")
-            .output();
-
-        match version_result {
-            Ok(output) => {
-                let parse_output = String::from_utf8(output.stdout);
-
-                match parse_output {
-                    Ok(version) => {
-                        self.version = version.replace("\n", "");
-                    }
-                    Err(why) => {
-                        panic!("There was an issue parsing the output from sw_vers!\n\n{:?}", why);
-                    }
-                }
-            }
-            Err(why) => {
-                panic!("There was an issue calling sw_vers to get the version of macOS!\n\n{:?}", why);
-            }
-        }
-
-        let build_result = Command::new("sw_vers")
-            .arg("--buildVersion")
-            .output();
-
-        match build_result {
-            Ok(output) => {
-                let parse_output = String::from_utf8(output.stdout);
-
-                match parse_output {
-                    Ok(build) => {
-                        self.build = build.replace("\n", "");
-                    }
-                    Err(why) => {
-                        panic!("There was an issue parsing the output from sw_vers!\n\n{:?}", why);
-                    }
-                }
-            }
-            Err(why) => {
-                panic!("There was an issue calling sw_vers to get the build of macOS!\n\n{:?}", why);
-            }
-        }
-
-    }
-
-}*/
 
 // TODO: Use "which" command to get location of brew
 impl System for MacOS {
 
-    fn refresh(&self) {
+    fn refresh(&self) -> ExitCode {
 
-        let mut brew = Command::new(&self.brew);
-        let mut refresh = brew.args(&self.refresh);
+        let mut args: Vec<&str> = Vec::new();
+        args.push("update");
+        args.push("--force");
+
+        let mut refresh = Command::new("/opt/homebrew/bin/brew");
+        refresh.args(&args);
 
         if self.show_output {
-            refresh = refresh
+            refresh
                 .stdout(Stdio::inherit())
                 .stderr(Stdio::inherit());
         }
@@ -99,22 +34,29 @@ impl System for MacOS {
         let refresh_result = refresh.output();
 
         match refresh_result {
-            Ok(_) => {
+            Ok(output) => {
                 println!("Refresh Complete!");
+                return match output.status.code() {
+                    Some(code) => ExitCode::from(code as u8),
+                    None => ExitCode::FAILURE
+                }
             }
             Err(why) => {
-                panic!("There was an issue running the upgrade process!\n\n{:?}", why);
+                panic!("There was an issue running the refresh process!\n\n{:?}", why);
             }
         }
     }
 
-    fn upgrade(&self) {
-        
-        let mut brew = Command::new(&self.brew);
-        let mut upgrade = brew.args(&self.upgrade);
+    fn upgrade(&self) -> ExitCode {
+
+        let mut args: Vec<&str> = Vec::new();
+        args.push("upgrade");
+
+        let mut upgrade = Command::new("/opt/homebrew/bin/brew");
+        upgrade.args(&args);
 
         if self.show_output {
-            upgrade = upgrade
+            upgrade
                 .stdout(Stdio::inherit())
                 .stderr(Stdio::inherit());
         }
@@ -122,13 +64,78 @@ impl System for MacOS {
         let upgrade_result = upgrade.output();
 
         match upgrade_result {
-            Ok(_) => {
+            Ok(output) => {
                 println!("Upgrade Complete!");
+                return match output.status.code() {
+                    Some(code) => ExitCode::from(code as u8),
+                    None => ExitCode::FAILURE
+                }
             }
             Err(why) => {
                 panic!("There was an issue running the upgrade process!\n\n{:?}", why);
             }
         }
+    }
 
+    fn package_search(&self, pkg_name: String) -> ExitCode {
+
+        let mut args: Vec<&str> = Vec::new();
+        args.push("search");
+        args.push(&pkg_name);
+
+        let mut search = Command::new("/opt/homebrew/bin/brew");
+        search.args(&args);
+        search
+            .stdout(Stdio::inherit())
+            .stderr(Stdio::inherit());
+
+        let search_result = search.output();
+
+        match search_result {
+            Ok(output) => {
+                return match output.status.code() {
+                    Some(code) => ExitCode::from(code as u8),
+                    None => ExitCode::FAILURE
+                }
+            }
+            Err(why) => {
+                panic!("There was an issue running the package search process!\n\n{:?}", why);
+            }
+        }
+    }
+
+    fn package_info(&self, pkg_name: String) -> ExitCode {
+
+        let mut args: Vec<&str> = Vec::new();
+        args.push("info");
+        args.push(&pkg_name);
+
+        let mut info = Command::new("/opt/homebrew/bin/brew");
+        info.args(&args);
+        info
+            .stdout(Stdio::inherit())
+            .stderr(Stdio::inherit());
+
+        let info_result = info.output();
+
+        match info_result {
+            Ok(output) => {
+                return match output.status.code() {
+                    Some(code) => ExitCode::from(code as u8),
+                    None => ExitCode::FAILURE
+                }
+            }
+            Err(why) => {
+                panic!("There was an issue running the package info process!\n\n{:?}", why);
+            }
+        }
+    }
+
+    fn package_install(&self, pkg_name: String) -> ExitCode {
+        todo!()
+    }
+
+    fn package_remove(&self, pkg_name: String) -> ExitCode {
+        todo!()
     }
 }

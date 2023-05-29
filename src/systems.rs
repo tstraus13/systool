@@ -1,13 +1,18 @@
-use std::process::Command;
+use std::process::{Command, ExitCode};
 use crate::systems::macos::MacOS;
 use crate::systems::ubuntu::Ubuntu;
 
 pub mod macos;
 pub mod ubuntu;
+pub mod fedora;
 
 pub trait System {
-    fn refresh(&self);
-    fn upgrade(&self);
+    fn refresh(&self) -> ExitCode;
+    fn upgrade(&self) -> ExitCode;
+    fn package_search(&self, pkg_name: String) -> ExitCode;
+    fn package_info(&self, pkg_name: String) -> ExitCode;
+    fn package_install(&self, pkg_name: String) -> ExitCode;
+    fn package_remove(&self, pkg_name: String) -> ExitCode;
 }
 
 pub fn detect_system(show_output: bool) ->  Box<dyn System> {
@@ -24,8 +29,14 @@ pub fn detect_system(show_output: bool) ->  Box<dyn System> {
             match output_text_result {
                 Ok(lowercase_text) => {
                     match lowercase_text {
-                        x if x.contains("darwin") => return Box::new(MacOS { show_output, ..Default::default() }),
-                        x if x.contains("ubuntu") => return Box::new(Ubuntu { show_output, ..Default::default() }),
+                        x if x.contains("darwin") => {
+                            println!("macOS Detected.");
+                            return Box::new(MacOS { show_output, ..Default::default() })
+                        },
+                        x if x.contains("ubuntu") => {
+                            println!("Ubuntu Detected.");
+                            return Box::new(Ubuntu { show_output, ..Default::default() })
+                        },
                         _ => panic!("Could not detect system! Exiting...")
                     }
                 }

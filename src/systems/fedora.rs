@@ -1,7 +1,7 @@
-use crate::systems::System;
 use std::process::{Command, ExitCode, Stdio};
+use crate::systems::System;
 
-impl Default for Ubuntu {
+impl Default for Fedora {
     fn default() -> Self {
         Self {
             show_output: false,
@@ -9,19 +9,17 @@ impl Default for Ubuntu {
     }
 }
 
-pub struct Ubuntu {
+pub struct Fedora {
     pub show_output: bool,
 }
 
-// TODO: Use "which" command to get location of apt
-impl System for Ubuntu {
-
+impl System for Fedora {
     fn refresh(&self) -> ExitCode {
-
         let mut args: Vec<&str> = Vec::new();
 
-        args.push("/usr/bin/apt-get");
-        args.push("update");
+        args.push("/usr/bin/dnf");
+        args.push("check-update");
+        args.push("--refresh");
 
         let mut refresh = Command::new(&args[0]);
         refresh.args(&args[1..]);
@@ -49,36 +47,7 @@ impl System for Ubuntu {
     }
 
     fn upgrade(&self) -> ExitCode {
-
-        let mut args: Vec<&str> = Vec::new();
-
-        args.push("/usr/bin/apt-get");
-        args.push("upgrade");
-        args.push("-y");
-
-        let mut upgrade = Command::new(&args[0]);
-        upgrade.args(&args[1..]);
-
-        if self.show_output {
-            upgrade
-                .stdout(Stdio::inherit())
-                .stderr(Stdio::inherit());
-        }
-
-        let upgrade_result = upgrade.output();
-
-        match upgrade_result {
-            Ok(output) => {
-                println!("Upgrade Complete!");
-                return match output.status.code() {
-                    Some(code) => ExitCode::from(code as u8),
-                    None => ExitCode::FAILURE
-                }
-            }
-            Err(why) => {
-                panic!("There was an issue running the upgrade process!\n\n{:?}", why);
-            }
-        }
+        todo!()
     }
 
     fn package_search(&self, pkg_name: String) -> ExitCode {
@@ -86,6 +55,14 @@ impl System for Ubuntu {
     }
 
     fn package_info(&self, pkg_name: String) -> ExitCode {
+        todo!()
+    }
+
+    fn package_install(&self, pkg_name: String) -> ExitCode {
+        todo!()
+    }
+
+    fn package_remove(&self, pkg_name: String) -> ExitCode {
         todo!()
     }
 }
