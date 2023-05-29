@@ -5,12 +5,14 @@ impl Default for Ubuntu {
     fn default() -> Self {
         Self {
             show_output: false,
+            force: false
         }
     }
 }
 
 pub struct Ubuntu {
     pub show_output: bool,
+    pub force: bool
 }
 
 // TODO: Use "which" command to get location of apt
@@ -20,11 +22,10 @@ impl System for Ubuntu {
 
         let mut args: Vec<&str> = Vec::new();
 
-        args.push("/usr/bin/apt-get");
         args.push("update");
 
-        let mut refresh = Command::new(&args[0]);
-        refresh.args(&args[1..]);
+        let mut refresh = Command::new("/usr/bin/apt-get");
+        refresh.args(&args);
 
         if self.show_output {
             refresh
@@ -52,12 +53,14 @@ impl System for Ubuntu {
 
         let mut args: Vec<&str> = Vec::new();
 
-        args.push("/usr/bin/apt-get");
         args.push("upgrade");
-        args.push("-y");
 
-        let mut upgrade = Command::new(&args[0]);
-        upgrade.args(&args[1..]);
+        if self.force {
+            args.push("-y");
+        }
+
+        let mut upgrade = Command::new("/usr/bin/apt-get");
+        upgrade.args(&args);
 
         if self.show_output {
             upgrade
@@ -82,10 +85,119 @@ impl System for Ubuntu {
     }
 
     fn package_search(&self, pkg_name: String) -> ExitCode {
-        todo!()
+        let mut args: Vec<&str> = Vec::new();
+
+        args.push("search");
+        args.push(&pkg_name);
+
+        let mut search = Command::new("/usr/bin/apt-cache");
+        search.args(&args);
+        search
+            .stdout(Stdio::inherit())
+            .stderr(Stdio::inherit());
+
+        let search_result = search.output();
+
+        match search_result {
+            Ok(output) => {
+                return match output.status.code() {
+                    Some(code) => ExitCode::from(code as u8),
+                    None => ExitCode::FAILURE
+                }
+            }
+            Err(why) => {
+                panic!("There was an issue running the package search process!\n\n{:?}", why);
+            }
+        }
     }
 
     fn package_info(&self, pkg_name: String) -> ExitCode {
-        todo!()
+        let mut args: Vec<&str> = Vec::new();
+        args.push("show");
+        args.push(&pkg_name);
+
+        let mut info = Command::new("/usr/bin/apt-cache");
+        info.args(&args);
+        info
+            .stdout(Stdio::inherit())
+            .stderr(Stdio::inherit());
+
+        let info_result = info.output();
+
+        match info_result {
+            Ok(output) => {
+                return match output.status.code() {
+                    Some(code) => ExitCode::from(code as u8),
+                    None => ExitCode::FAILURE
+                }
+            }
+            Err(why) => {
+                panic!("There was an issue running the package info process!\n\n{:?}", why);
+            }
+        }
+    }
+
+    fn package_install(&self, pkg_name: String) -> ExitCode {
+        let mut args: Vec<&str> = Vec::new();
+        args.push("install");
+
+        if self.force {
+            args.push("-y");
+        }
+
+        args.push(&pkg_name);
+
+        let mut install = Command::new("/usr/bin/apt-get");
+        install.args(&args);
+        install
+            .stdin(Stdio::inherit())
+            .stdout(Stdio::inherit())
+            .stderr(Stdio::inherit());
+
+        let install_result = install.output();
+
+        match install_result {
+            Ok(output) => {
+                return match output.status.code() {
+                    Some(code) => ExitCode::from(code as u8),
+                    None => ExitCode::FAILURE
+                }
+            }
+            Err(why) => {
+                panic!("There was an issue running the package install process!\n\n{:?}", why);
+            }
+        }
+    }
+
+    fn package_remove(&self, pkg_name: String) -> ExitCode {
+        let mut args: Vec<&str> = Vec::new();
+        args.push("purge");
+
+        if self.force {
+            args.push("-y");
+        }
+
+        args.push(&pkg_name);
+
+        let mut remove = Command::new("/usr/bin/apt-get");
+        remove.args(&args);
+        remove
+            .stdin(Stdio::inherit())
+            .stdout(Stdio::inherit())
+            .stderr(Stdio::inherit());
+
+        let remove_result = remove.output();
+
+        match remove_result {
+            Ok(output) => {
+                return match output.status.code() {
+                    Some(code) => ExitCode::from(code as u8),
+                    None => ExitCode::FAILURE
+                }
+            }
+            Err(why) => {
+                panic!("There was an issue running the package remove process!\n\n{:?}", why);
+            }
+        }
     }
 }

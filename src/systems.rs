@@ -1,4 +1,5 @@
 use std::process::{Command, ExitCode};
+use crate::systems::fedora::Fedora;
 use crate::systems::macos::MacOS;
 use crate::systems::ubuntu::Ubuntu;
 
@@ -15,7 +16,7 @@ pub trait System {
     fn package_remove(&self, pkg_name: String) -> ExitCode;
 }
 
-pub fn detect_system(show_output: bool) ->  Box<dyn System> {
+pub fn detect_system(show_output: bool, force: bool) ->  Box<dyn System> {
 
     let uname_result = Command::new("uname")
         .arg("-a")
@@ -31,12 +32,31 @@ pub fn detect_system(show_output: bool) ->  Box<dyn System> {
                     match lowercase_text {
                         x if x.contains("darwin") => {
                             println!("macOS Detected.");
-                            return Box::new(MacOS { show_output, ..Default::default() })
+                            return Box::new(MacOS
+                            {
+                                show_output,
+                                force,
+                                ..Default::default()
+                            })
                         },
                         x if x.contains("ubuntu") => {
                             println!("Ubuntu Detected.");
-                            return Box::new(Ubuntu { show_output, ..Default::default() })
+                            return Box::new(Ubuntu
+                            {
+                                show_output,
+                                force,
+                                ..Default::default()
+                            })
                         },
+                        x if x.contains("fc38") || x.contains("fc37") => {
+                            println!("Fedora Detected!");
+                            return Box::new(Fedora
+                            {
+                                show_output,
+                                force,
+                                ..Default::default()
+                            })
+                        }
                         _ => panic!("Could not detect system! Exiting...")
                     }
                 }

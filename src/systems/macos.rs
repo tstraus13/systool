@@ -5,12 +5,14 @@ impl Default for MacOS {
     fn default() -> Self {
         Self {
             show_output: false,
+            force: false
         }
     }
 }
 
 pub struct MacOS {
     pub show_output: bool,
+    pub force: bool
 }
 
 // TODO: Use "which" command to get location of brew
@@ -132,10 +134,66 @@ impl System for MacOS {
     }
 
     fn package_install(&self, pkg_name: String) -> ExitCode {
-        todo!()
+        let mut args: Vec<&str> = Vec::new();
+        args.push("install");
+
+        // if self.force {
+        //     args.push("-y");
+        // }
+
+        args.push(&pkg_name);
+
+        let mut install = Command::new("/opt/homebrew/bin/brew");
+        install.args(&args);
+        install
+            .stdin(Stdio::inherit())
+            .stdout(Stdio::inherit())
+            .stderr(Stdio::inherit());
+
+        let install_result = install.output();
+
+        match install_result {
+            Ok(output) => {
+                return match output.status.code() {
+                    Some(code) => ExitCode::from(code as u8),
+                    None => ExitCode::FAILURE
+                }
+            }
+            Err(why) => {
+                panic!("There was an issue running the package install process!\n\n{:?}", why);
+            }
+        }
     }
 
     fn package_remove(&self, pkg_name: String) -> ExitCode {
-        todo!()
+        let mut args: Vec<&str> = Vec::new();
+        args.push("remove");
+
+        // if self.force {
+        //    args.push("-y");
+        // }
+
+        args.push(&pkg_name);
+
+        let mut remove = Command::new("/opt/homebrew/bin/brew");
+        remove.args(&args);
+        remove
+            .stdin(Stdio::inherit())
+            .stdout(Stdio::inherit())
+            .stderr(Stdio::inherit());
+
+        let remove_result = remove.output();
+
+        match remove_result {
+            Ok(output) => {
+                return match output.status.code() {
+                    Some(code) => ExitCode::from(code as u8),
+                    None => ExitCode::FAILURE
+                }
+            }
+            Err(why) => {
+                panic!("There was an issue running the package remove process!\n\n{:?}", why);
+            }
+        }
     }
 }
