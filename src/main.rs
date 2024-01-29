@@ -1,58 +1,30 @@
-pub mod systems;
+mod systems;
+mod command_args;
+mod commands;
 
 use std::env;
 use std::process::ExitCode;
 use clap::{Args, Parser, Subcommand};
+use crate::command_args::*;
+use crate::commands::*;
 use crate::systems::detect_system;
 
-#[derive(Parser, Debug)]
-#[command(author, version, about, long_about = None)]
-struct SysTool {
-    /// The Command
-    #[command(subcommand)]
-    command: Commands,
-    // Force / Accept Any User Input
-    // #[arg(short, long)]
-    // force: String,
-    // #[arg(short, long)]
-    // output: String
-}
 
-#[derive(Subcommand, Debug)]
-enum Commands {
-    Refresh(RefreshCommand),
-    Upgrade
-}
-
-#[derive(Args, Debug)]
-struct RefreshCommand {
-    #[arg(short, long)]
-    force: bool,
-    #[arg(short, long)]
-    output: bool
-}
 
 fn main() {
 
     let cli = SysTool::parse();
 
-    //let t = 0;
     dbg!(&cli);
 
-    let system = detect_system(true, true);
+    let system = detect_system();
 
     match &cli.command {
         Commands::Refresh(args) => {
-            if args.force {
-                println!("FORCE PROVIDED");
-            }
-            if args.output {
-                println!("OUTPUT PROVIDED");
-            }
-            //system.refresh();
+            system.refresh(args);
         }
-        Commands::Upgrade => {
-            println!("UPGRADE");
+        Commands::Upgrade(args) => {
+            system.upgrade(args)
         }
         _ => {}
     }

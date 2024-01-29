@@ -1,24 +1,13 @@
 use crate::systems::System;
 use std::process::{Command, ExitCode, Stdio};
+use crate::command_args::RefreshCommandArgs;
 
-impl Default for MacOS {
-    fn default() -> Self {
-        Self {
-            show_output: false,
-            force: false
-        }
-    }
-}
-
-pub struct MacOS {
-    pub show_output: bool,
-    pub force: bool
-}
+pub struct MacOS;
 
 // TODO: Use "which" command to get location of brew
 impl System for MacOS {
 
-    fn refresh(&self) -> ExitCode {
+    fn refresh(command_args: RefreshCommandArgs) -> ExitCode {
 
         let mut args: Vec<&str> = Vec::new();
         args.push("update");
@@ -27,7 +16,7 @@ impl System for MacOS {
         let mut refresh = Command::new("/opt/homebrew/bin/brew");
         refresh.args(&args);
 
-        if self.show_output {
+        if command_args.show_output {
             refresh
                 .stdout(Stdio::inherit())
                 .stderr(Stdio::inherit());

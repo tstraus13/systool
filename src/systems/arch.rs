@@ -1,23 +1,12 @@
 use std::process::{Command, ExitCode, Stdio};
+use crate::command_args::*;
 use crate::systems::System;
 
-impl Default for Arch {
-    fn default() -> Self {
-        Self {
-            show_output: false,
-            force: false
-        }
-    }
-}
-
-pub struct Arch {
-    pub show_output: bool,
-    pub force: bool
-}
+pub struct Arch;
 
 // TODO: Use "which" command to get location of pacman
 impl System for Arch {
-    fn refresh(&self) -> ExitCode {
+    fn refresh(command_args:RefreshCommandArgs) -> ExitCode {
         let mut args: Vec<&str> = Vec::new();
 
         args.push("-Syy");
@@ -25,7 +14,7 @@ impl System for Arch {
         let mut refresh = Command::new("/usr/bin/pacman");
         refresh.args(&args);
 
-        if self.show_output {
+        if command_args.show_output {
             refresh
                 .stdout(Stdio::inherit())
                 .stderr(Stdio::inherit());

@@ -1,4 +1,5 @@
 use std::process::{Command, ExitCode};
+use crate::command_args::*;
 use crate::systems::fedora::Fedora;
 use crate::systems::macos::MacOS;
 use crate::systems::ubuntu::Ubuntu;
@@ -12,15 +13,15 @@ pub mod void;
 pub mod arch;
 
 pub trait System {
-    fn refresh(&self) -> ExitCode;
-    fn upgrade(&self) -> ExitCode;
+    fn refresh(command_args:RefreshCommandArgs) -> ExitCode;
+    fn upgrade(command_args:UpgradeCommandArgs) -> ExitCode;
     fn package_search(&self, pkg_name: String) -> ExitCode;
     fn package_info(&self, pkg_name: String) -> ExitCode;
     fn package_install(&self, pkg_name: String) -> ExitCode;
     fn package_remove(&self, pkg_name: String) -> ExitCode;
 }
 
-pub fn detect_system(show_output: bool, force: bool) ->  Box<dyn System> {
+pub fn detect_system() ->  Box<dyn System> {
 
     // Use lsb_release to get system info
     let lsb_release_result = Command::new("lsb_release")
@@ -37,39 +38,19 @@ pub fn detect_system(show_output: bool, force: bool) ->  Box<dyn System> {
                     match lowercase_text {
                         x if x.contains("darwin") => {
                             println!("macOS Detected.");
-                            return Box::new(MacOS
-                            {
-                                show_output,
-                                force,
-                                ..Default::default()
-                            })
+                            return Box::new(MacOS)
                         },
                         x if x.contains("ubuntu") || x.contains("debian") => {
                             println!("Ubuntu/Debian Detected.");
-                            return Box::new(Ubuntu
-                            {
-                                show_output,
-                                force,
-                                ..Default::default()
-                            })
+                            return Box::new(Ubuntu)
                         },
                         x if x.contains("fedora") => {
                             println!("Fedora Detected!");
-                            return Box::new(Fedora
-                            {
-                                show_output,
-                                force,
-                                ..Default::default()
-                            })
+                            return Box::new(Fedora)
                         },
                         x if x.contains("voidlinux") => {
                             println!("Void Detected!");
-                            return Box::new(Void
-                            {
-                                show_output,
-                                force,
-                                ..Default::default()
-                            })
+                            return Box::new(Void)
                         }
                         _ => {}
                     }
@@ -100,30 +81,15 @@ pub fn detect_system(show_output: bool, force: bool) ->  Box<dyn System> {
                     match lowercase_text {
                         x if x.contains("darwin") => {
                             println!("macOS Detected.");
-                            return Box::new(MacOS
-                            {
-                                show_output,
-                                force,
-                                ..Default::default()
-                            })
+                            return Box::new(MacOS)
                         },
                         x if x.contains("ubuntu") || x.contains("debian") => {
                             println!("Ubuntu/Debian Detected.");
-                            return Box::new(Ubuntu
-                            {
-                                show_output,
-                                force,
-                                ..Default::default()
-                            })
+                            return Box::new(Ubuntu)
                         },
                         x if x.contains("fc38") || x.contains("fc37") => {
                             println!("Fedora Detected!");
-                            return Box::new(Fedora
-                            {
-                                show_output,
-                                force,
-                                ..Default::default()
-                            })
+                            return Box::new(Fedora)
                         }
                         _ => panic!("Could not detect system! Exiting...")
                     }

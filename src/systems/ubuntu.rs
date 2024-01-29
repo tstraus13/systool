@@ -1,24 +1,13 @@
 use crate::systems::System;
 use std::process::{Command, ExitCode, Stdio};
+use crate::command_args::RefreshCommandArgs;
 
-impl Default for Ubuntu {
-    fn default() -> Self {
-        Self {
-            show_output: false,
-            force: false
-        }
-    }
-}
-
-pub struct Ubuntu {
-    pub show_output: bool,
-    pub force: bool
-}
+pub struct Ubuntu;
 
 // TODO: Use "which" command to get location of apt
 impl System for Ubuntu {
 
-    fn refresh(&self) -> ExitCode {
+    fn refresh(command_args: RefreshCommandArgs) -> ExitCode {
 
         let mut args: Vec<&str> = Vec::new();
 
@@ -27,7 +16,7 @@ impl System for Ubuntu {
         let mut refresh = Command::new("/usr/bin/apt-get");
         refresh.args(&args);
 
-        if self.show_output {
+        if command_args.show_output {
             refresh
                 .stdout(Stdio::inherit())
                 .stderr(Stdio::inherit());

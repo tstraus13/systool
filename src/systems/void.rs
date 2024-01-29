@@ -1,23 +1,12 @@
 use std::process::{Command, ExitCode, Stdio};
+use crate::command_args::RefreshCommandArgs;
 use crate::systems::System;
 
-impl Default for Void {
-    fn default() -> Self {
-        Self {
-            show_output: false,
-            force: false
-        }
-    }
-}
-
-pub struct Void {
-    pub show_output: bool,
-    pub force: bool
-}
+pub struct Void;
 
 // TODO: Use "which" command to get location of xbps-*
 impl System for Void {
-    fn refresh(&self) -> ExitCode {
+    fn refresh(command_args: RefreshCommandArgs) -> ExitCode {
         let mut args: Vec<&str> = Vec::new();
 
         args.push("--sync");
@@ -25,7 +14,7 @@ impl System for Void {
         let mut refresh = Command::new("/usr/bin/xbps-install");
         refresh.args(&args);
 
-        if self.show_output {
+        if command_args.show_output {
             refresh
                 .stdout(Stdio::inherit())
                 .stderr(Stdio::inherit());
