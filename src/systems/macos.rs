@@ -1,6 +1,5 @@
-use crate::systems::System;
 use std::process::{Command, ExitCode, Stdio};
-use crate::command_args::*;
+use crate::systems::*;
 
 pub struct MacOS;
 
@@ -8,12 +7,13 @@ pub struct MacOS;
 impl System for MacOS {
 
     fn refresh(&self, command_args: &RefreshCommandArgs) -> ExitCode {
-
         let mut args: Vec<&str> = Vec::new();
+
         args.push("update");
         args.push("--force");
 
-        let mut refresh = Command::new("/opt/homebrew/bin/brew");
+        let refresh_command_path = which("brew");
+        let mut refresh = Command::new(refresh_command_path);
         refresh.args(&args);
 
         if command_args.show_output {
@@ -43,7 +43,8 @@ impl System for MacOS {
         let mut args: Vec<&str> = Vec::new();
         args.push("upgrade");
 
-        let mut upgrade = Command::new("/opt/homebrew/bin/brew");
+        let upgrade_command_path = which("brew");
+        let mut upgrade = Command::new(upgrade_command_path);
         upgrade.args(&args);
 
         if upgrade_args.show_output {
@@ -74,7 +75,8 @@ impl System for MacOS {
         args.push("search");
         args.push(&pkg_search_args.package_name);
 
-        let mut search = Command::new("/opt/homebrew/bin/brew");
+        let search_command_path = which("brew");
+        let mut search = Command::new(search_command_path);
         search.args(&args);
         search
             .stdout(Stdio::inherit())
@@ -101,7 +103,8 @@ impl System for MacOS {
         args.push("info");
         args.push(&pkg_info_args.package_name);
 
-        let mut info = Command::new("/opt/homebrew/bin/brew");
+        let info_command_path = which("brew");
+        let mut info = Command::new(info_command_path);
         info.args(&args);
         info
             .stdout(Stdio::inherit())
@@ -134,7 +137,8 @@ impl System for MacOS {
             args.push(package);
         }
 
-        let mut install = Command::new("/opt/homebrew/bin/brew");
+        let install_command_path = which("brew");
+        let mut install = Command::new(install_command_path);
         install.args(&args);
         install
             .stdin(Stdio::inherit())
@@ -168,7 +172,8 @@ impl System for MacOS {
             args.push(package);
         }
 
-        let mut remove = Command::new("/opt/homebrew/bin/brew");
+        let remove_command_path = which("brew");
+        let mut remove = Command::new(remove_command_path);
         remove.args(&args);
         remove
             .stdin(Stdio::inherit())

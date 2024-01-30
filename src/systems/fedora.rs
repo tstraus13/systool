@@ -1,10 +1,8 @@
 use std::process::{Command, ExitCode, Stdio};
-use crate::command_args::*;
-use crate::systems::System;
+use crate::systems::*;
 
 pub struct Fedora;
 
-// TODO: Use "which" command to get location of dnf
 impl System for Fedora {
     fn refresh(&self, command_args: &RefreshCommandArgs) -> ExitCode {
         let mut args: Vec<&str> = Vec::new();
@@ -12,7 +10,8 @@ impl System for Fedora {
         args.push("check-update");
         args.push("--refresh");
 
-        let mut refresh = Command::new("/usr/bin/dnf");
+        let refresh_command_path = which("dnf");
+        let mut refresh = Command::new(refresh_command_path);
         refresh.args(&args);
 
         if command_args.show_output {
@@ -46,7 +45,8 @@ impl System for Fedora {
             args.push("-y");
         }
 
-        let mut upgrade = Command::new("/usr/bin/dnf");
+        let upgrade_command_path = which("dnf");
+        let mut upgrade = Command::new(upgrade_command_path);
         upgrade.args(&args);
         upgrade.stdin(Stdio::inherit());
 
@@ -78,7 +78,8 @@ impl System for Fedora {
         args.push("search");
         args.push(&pkg_search_args.package_name);
 
-        let mut search = Command::new("/usr/bin/dnf");
+        let search_command_path = which("dnf");
+        let mut search = Command::new(search_command_path);
         search.args(&args);
         search
             .stdout(Stdio::inherit())
@@ -104,7 +105,8 @@ impl System for Fedora {
         args.push("info");
         args.push(&pkg_info_args.package_name);
 
-        let mut info = Command::new("/usr/bin/dnf");
+        let info_command_path = which("dnf");
+        let mut info = Command::new(info_command_path);
         info.args(&args);
         info
             .stdout(Stdio::inherit())
@@ -137,7 +139,8 @@ impl System for Fedora {
             args.push(package);
         }
 
-        let mut install = Command::new("/usr/bin/dnf");
+        let install_command_path = which("dnf");
+        let mut install = Command::new(install_command_path);
         install.args(&args);
         install
             .stdin(Stdio::inherit())
@@ -171,7 +174,8 @@ impl System for Fedora {
             args.push(package);
         }
 
-        let mut remove = Command::new("/usr/bin/dnf");
+        let remove_command_path = which("dnf");
+        let mut remove = Command::new(remove_command_path);
         remove.args(&args);
         remove
             .stdin(Stdio::inherit())

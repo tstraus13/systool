@@ -49,89 +49,96 @@ pub fn detect_system() ->  Box<dyn System> {
 
     // Check for system type by lsb_release command
     let lsb_release_path = which("lsb_release");
-    let lsb_release_result = Command::new(lsb_release_path)
-        .arg("-a")
-        .output();
 
-    match lsb_release_result {
-        Ok(output) => {
+    if !String::is_empty(&lsb_release_path) {
+        let lsb_release_result = Command::new(lsb_release_path)
+            .arg("-a")
+            .output();
 
-            let output_text_result = String::from_utf8(output.stdout.to_ascii_lowercase());
+        match lsb_release_result {
+            Ok(output) => {
 
-            match output_text_result {
-                Ok(lowercase_text) => {
-                    match lowercase_text {
-                        x if x.contains("darwin") => {
-                            println!("macOS Detected.");
-                            return Box::new(MacOS)
-                        },
-                        x if x.contains("ubuntu") || x.contains("debian") => {
-                            println!("Ubuntu/Debian Detected.");
-                            return Box::new(Ubuntu)
-                        },
-                        x if x.contains("fedora") => {
-                            println!("Fedora Detected!");
-                            return Box::new(Fedora)
-                        },
-                        x if x.contains("voidlinux") => {
-                            println!("Void Detected!");
-                            return Box::new(Void)
+                let output_text_result = String::from_utf8(output.stdout.to_ascii_lowercase());
+
+                match output_text_result {
+                    Ok(lowercase_text) => {
+                        match lowercase_text {
+                            x if x.contains("darwin") => {
+                                println!("macOS Detected.");
+                                return Box::new(MacOS)
+                            },
+                            x if x.contains("ubuntu") || x.contains("debian") => {
+                                println!("Ubuntu/Debian Detected.");
+                                return Box::new(Ubuntu)
+                            },
+                            x if x.contains("fedora") => {
+                                println!("Fedora Detected!");
+                                return Box::new(Fedora)
+                            },
+                            x if x.contains("voidlinux") => {
+                                println!("Void Detected!");
+                                return Box::new(Void)
+                            }
+                            ,
+                            x if x.contains("arch") => {
+                                println!("Void Detected!");
+                                return Box::new(Arch)
+                            }
+                            _ => {}
                         }
-                        ,
-                        x if x.contains("arch") => {
-                            println!("Void Detected!");
-                            return Box::new(Arch)
-                        }
-                        _ => {}
+                    }
+                    Err(why) => {
+                        panic!("There was an error getting the lsb_release command output!\n\n{}", why)
                     }
                 }
-                Err(why) => {
-                    panic!("There was an error getting the lsb_release command output!\n\n{}", why)
-                }
             }
-        }
-        Err(why) => {
-            panic!("There was an error running the lsb_release command!\n\n{}", why)
+            Err(why) => {
+                panic!("There was an error running the lsb_release command!\n\n{}", why)
+            }
         }
     }
 
     // Check for system type by uname command
     let uname_path = which("uname");
-    let uname_result = Command::new(uname_path)
-        .arg("-a")
-        .output()
-        ;
 
-    match uname_result {
-        Ok(output) => {
+    if !String::is_empty(&uname_path) {
+        let uname_result = Command::new(uname_path)
+            .arg("-a")
+            .output();
 
-            let output_text_result = String::from_utf8(output.stdout.to_ascii_lowercase());
+        match uname_result {
+            Ok(output) => {
 
-            match output_text_result {
-                Ok(lowercase_text) => {
-                    match lowercase_text {
-                        x if x.contains("darwin") => {
-                            println!("macOS Detected.");
-                            return Box::new(MacOS)
-                        },
-                        x if x.contains("ubuntu") || x.contains("debian") => {
-                            println!("Ubuntu/Debian Detected.");
-                            return Box::new(Ubuntu)
-                        },
-                        x if x.contains("fc38") || x.contains("fc37") => {
-                            println!("Fedora Detected!");
-                            return Box::new(Fedora)
+                let output_text_result = String::from_utf8(output.stdout.to_ascii_lowercase());
+
+                match output_text_result {
+                    Ok(lowercase_text) => {
+                        match lowercase_text {
+                            x if x.contains("darwin") => {
+                                println!("macOS Detected.");
+                                return Box::new(MacOS)
+                            },
+                            x if x.contains("ubuntu") || x.contains("debian") => {
+                                println!("Ubuntu/Debian Detected.");
+                                return Box::new(Ubuntu)
+                            },
+                            x if x.contains("fc38") || x.contains("fc37") => {
+                                println!("Fedora Detected!");
+                                return Box::new(Fedora)
+                            }
+                            _ => panic!("Could not detect system! Exiting...")
                         }
-                        _ => panic!("Could not detect system! Exiting...")
+                    }
+                    Err(why) => {
+                        panic!("There was an error getting the uname command output!\n\n{}", why)
                     }
                 }
-                Err(why) => {
-                    panic!("There was an error getting the uname command output!\n\n{}", why)
-                }
+            }
+            Err(why) => {
+                panic!("There was an error running the uname command!\n\n{}", why)
             }
         }
-        Err(why) => {
-            panic!("There was an error running the uname command!\n\n{}", why)
-        }
     }
+
+    panic!("Unable to detect system! Exiting...")
 }
