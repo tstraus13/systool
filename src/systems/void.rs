@@ -1,6 +1,5 @@
 use std::process::{Command, ExitCode, Stdio};
-use crate::command_args::*;
-use crate::systems::System;
+use crate::systems::*;
 
 pub struct Void;
 
@@ -11,7 +10,8 @@ impl System for Void {
 
         args.push("--sync");
 
-        let mut refresh = Command::new("/usr/bin/xbps-install");
+        let refresh_command_path = which("xbps-install");
+        let mut refresh = Command::new(refresh_command_path);
         refresh.args(&args);
 
         if command_args.show_output {
@@ -46,7 +46,8 @@ impl System for Void {
             args.push("--yes");
         }
 
-        let mut upgrade = Command::new("/usr/bin/xbps-install");
+        let upgrade_command_path = which("xbps-install");
+        let mut upgrade = Command::new(upgrade_command_path);
         upgrade.args(&args);
         upgrade.stdin(Stdio::inherit());
 
@@ -78,7 +79,8 @@ impl System for Void {
         args.push("-Rs");
         args.push(&pkg_search_args.package_name);
 
-        let mut search = Command::new("/usr/bin/xbps-query");
+        let search_command_path = which("xbps-query");
+        let mut search = Command::new(search_command_path);
         search.args(&args);
         search
             .stdout(Stdio::inherit())
@@ -104,7 +106,8 @@ impl System for Void {
         args.push("-RS");
         args.push(&pkg_info_args.package_name);
 
-        let mut info = Command::new("/usr/bin/xbps-query");
+        let info_command_path = which("xbps-query");
+        let mut info = Command::new(info_command_path);
         info.args(&args);
         info
             .stdout(Stdio::inherit())
@@ -137,7 +140,8 @@ impl System for Void {
             args.push(package);
         }
 
-        let mut install = Command::new("/usr/bin/xbps-install");
+        let install_command_path = which("xbps-install");
+        let mut install = Command::new(install_command_path);
         install.args(&args);
         install
             .stdin(Stdio::inherit())
@@ -170,7 +174,8 @@ impl System for Void {
             args.push(package);
         }
 
-        let mut remove = Command::new("/usr/bin/xbps-remove");
+        let remove_command_path = which("xbps-remove");
+        let mut remove = Command::new(remove_command_path);
         remove.args(&args);
         remove
             .stdin(Stdio::inherit())

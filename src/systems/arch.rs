@@ -10,8 +10,8 @@ impl System for Arch {
 
         args.push("-Syy");
 
-        let refresh_path = which("pacman");
-        let mut refresh = Command::new(refresh_path);
+        let refresh_command_path = which("pacman");
+        let mut refresh = Command::new(refresh_command_path);
         refresh.args(&args);
 
         if command_args.show_output {
@@ -45,7 +45,8 @@ impl System for Arch {
             args.push("--noconfirm");
         }
 
-        let mut upgrade = Command::new("/usr/bin/pacman");
+        let upgrade_command_path = which("pacman");
+        let mut upgrade = Command::new(upgrade_command_path);
         upgrade.args(&args);
         upgrade.stdin(Stdio::inherit());
 
@@ -77,7 +78,8 @@ impl System for Arch {
         args.push("-Ssy");
         args.push(&pkg_search_args.package_name);
 
-        let mut search = Command::new("/usr/bin/pacman");
+        let search_command_path = which("pacman");
+        let mut search = Command::new(search_command_path);
         search.args(&args);
         search
             .stdout(Stdio::inherit())
@@ -104,15 +106,16 @@ impl System for Arch {
         args.push("-Siy");
         args.push(&pkg_info_args.package_name);
 
-        let mut search = Command::new("/usr/bin/pacman");
-        search.args(&args);
-        search
+        let info_command_path = which("pacman");
+        let mut info = Command::new(info_command_path);
+        info.args(&args);
+        info
             .stdout(Stdio::inherit())
             .stderr(Stdio::inherit());
 
-        let search_result = search.output();
+        let info_result = info.output();
 
-        match search_result {
+        match info_result {
             Ok(output) => {
                 return match output.status.code() {
                     Some(code) => ExitCode::from(code as u8),
@@ -137,7 +140,8 @@ impl System for Arch {
             args.push(package);
         }
 
-        let mut install = Command::new("/usr/bin/pacman");
+        let install_command_path = which("pacman");
+        let mut install = Command::new(install_command_path);
         install.args(&args);
         install
             .stdin(Stdio::inherit())
@@ -171,16 +175,17 @@ impl System for Arch {
             args.push(package);
         }
 
-        let mut install = Command::new("/usr/bin/pacman");
-        install.args(&args);
-        install
+        let remove_command_path = which("pacman");
+        let mut remove = Command::new(remove_command_path);
+        remove.args(&args);
+        remove
             .stdin(Stdio::inherit())
             .stdout(Stdio::inherit())
             .stderr(Stdio::inherit());
 
-        let install_result = install.output();
+        let remove_result = remove.output();
 
-        match install_result {
+        match remove_result {
             Ok(output) => {
                 return match output.status.code() {
                     Some(code) => ExitCode::from(code as u8),

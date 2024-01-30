@@ -1,10 +1,9 @@
-use crate::systems::System;
 use std::process::{Command, ExitCode, Stdio};
-use crate::command_args::*;
+use crate::systems::*;
+
 
 pub struct Ubuntu;
 
-// TODO: Use "which" command to get location of apt
 impl System for Ubuntu {
 
     fn refresh(&self, command_args: &RefreshCommandArgs) -> ExitCode {
@@ -13,7 +12,8 @@ impl System for Ubuntu {
 
         args.push("update");
 
-        let mut refresh = Command::new("/usr/bin/apt-get");
+        let refresh_command_path = which("apt-get");
+        let mut refresh = Command::new(refresh_command_path);
         refresh.args(&args);
 
         if command_args.show_output {
@@ -48,7 +48,8 @@ impl System for Ubuntu {
             args.push("-y");
         }
 
-        let mut upgrade = Command::new("/usr/bin/apt-get");
+        let upgrade_command_path = which("apt-get");
+        let mut upgrade = Command::new(upgrade_command_path);
         upgrade.args(&args);
 
         if upgrade_args.show_output {
@@ -79,7 +80,8 @@ impl System for Ubuntu {
         args.push("search");
         args.push(&pkg_search_args.package_name);
 
-        let mut search = Command::new("/usr/bin/apt-cache");
+        let search_command_path = which("apt-cache");
+        let mut search = Command::new(search_command_path);
         search.args(&args);
         search
             .stdout(Stdio::inherit())
@@ -105,7 +107,8 @@ impl System for Ubuntu {
         args.push("show");
         args.push(&pkg_info_args.package_name);
 
-        let mut info = Command::new("/usr/bin/apt-cache");
+        let info_command_path = which("apt-cache");
+        let mut info = Command::new(info_command_path);
         info.args(&args);
         info
             .stdout(Stdio::inherit())
@@ -138,7 +141,8 @@ impl System for Ubuntu {
             args.push(package);
         }
 
-        let mut install = Command::new("/usr/bin/apt-get");
+        let install_command_path = which("apt-get");
+        let mut install = Command::new(install_command_path);
         install.args(&args);
         install
             .stdin(Stdio::inherit())
@@ -172,7 +176,8 @@ impl System for Ubuntu {
             args.push(package);
         }
 
-        let mut remove = Command::new("/usr/bin/apt-get");
+        let remove_command_path = which("apt-get");
+        let mut remove = Command::new(remove_command_path);
         remove.args(&args);
         remove
             .stdin(Stdio::inherit())
