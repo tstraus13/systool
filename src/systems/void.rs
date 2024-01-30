@@ -1,12 +1,12 @@
 use std::process::{Command, ExitCode, Stdio};
-use crate::command_args::RefreshCommandArgs;
+use crate::command_args::*;
 use crate::systems::System;
 
 pub struct Void;
 
 // TODO: Use "which" command to get location of xbps-*
 impl System for Void {
-    fn refresh(command_args: RefreshCommandArgs) -> ExitCode {
+    fn refresh(&self, command_args: &RefreshCommandArgs) -> ExitCode {
         let mut args: Vec<&str> = Vec::new();
 
         args.push("--sync");
@@ -36,13 +36,13 @@ impl System for Void {
         }
     }
 
-    fn upgrade(&self) -> ExitCode {
+    fn upgrade(&self, upgrade_args: &UpgradeCommandArgs) -> ExitCode {
         let mut args: Vec<&str> = Vec::new();
 
         args.push("--sync");
         args.push("--update");
 
-        if self.force {
+        if upgrade_args.force {
             args.push("--yes");
         }
 
@@ -50,7 +50,7 @@ impl System for Void {
         upgrade.args(&args);
         upgrade.stdin(Stdio::inherit());
 
-        if self.show_output {
+        if upgrade_args.show_output {
             upgrade
                 .stdout(Stdio::inherit())
                 .stderr(Stdio::inherit());
@@ -72,11 +72,11 @@ impl System for Void {
         }
     }
 
-    fn package_search(&self, pkg_name: String) -> ExitCode {
+    fn package_search(&self, pkg_search_args: &PackageSearchCommandArgs) -> ExitCode {
         let mut args: Vec<&str> = Vec::new();
 
         args.push("-Rs");
-        args.push(&pkg_name);
+        args.push(&pkg_search_args.package_name);
 
         let mut search = Command::new("/usr/bin/xbps-query");
         search.args(&args);
@@ -99,10 +99,10 @@ impl System for Void {
         }
     }
 
-    fn package_info(&self, pkg_name: String) -> ExitCode {
+    fn package_info(&self, pkg_info_args: &PackageInfoCommandArgs) -> ExitCode {
         let mut args: Vec<&str> = Vec::new();
         args.push("-RS");
-        args.push(&pkg_name);
+        args.push(&pkg_info_args.package_name);
 
         let mut info = Command::new("/usr/bin/xbps-query");
         info.args(&args);
@@ -125,15 +125,17 @@ impl System for Void {
         }
     }
 
-    fn package_install(&self, pkg_name: String) -> ExitCode {
+    fn package_install(&self, pkg_install_args: &PackageInstallCommandArgs) -> ExitCode {
         let mut args: Vec<&str> = Vec::new();
         args.push("--sync");
 
-        if self.force {
-            args.push("--yes");
+        if pkg_install_args.force {
+            args.push("-y");
         }
 
-        args.push(&pkg_name);
+        for package in pkg_install_args.packages.iter() {
+            args.push(package);
+        }
 
         let mut install = Command::new("/usr/bin/xbps-install");
         install.args(&args);
@@ -157,15 +159,16 @@ impl System for Void {
         }
     }
 
-    fn package_remove(&self, pkg_name: String) -> ExitCode {
+    fn package_remove(&self, pkg_remove_args: &PackageRemoveCommandArgs) -> ExitCode {
         let mut args: Vec<&str> = Vec::new();
-        //args.push("remove");
 
-        if self.force {
-            args.push("--yes");
+        if pkg_remove_args.force {
+            args.push("-y");
         }
 
-        args.push(&pkg_name);
+        for package in pkg_remove_args.packages.iter() {
+            args.push(package);
+        }
 
         let mut remove = Command::new("/usr/bin/xbps-remove");
         remove.args(&args);

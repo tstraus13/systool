@@ -2,34 +2,45 @@ mod systems;
 mod command_args;
 mod commands;
 
-use std::env;
 use std::process::ExitCode;
-use clap::{Args, Parser, Subcommand};
-use crate::command_args::*;
+use clap::Parser;
 use crate::commands::*;
 use crate::systems::detect_system;
 
 
 
-fn main() {
+fn main() -> ExitCode {
 
     let cli = SysTool::parse();
 
-    dbg!(&cli);
+    //dbg!(&cli);
 
     let system = detect_system();
 
-    match &cli.command {
+    return match &cli.command {
         Commands::Refresh(args) => {
-            system.refresh(args);
+            system.refresh(args)
         }
         Commands::Upgrade(args) => {
             system.upgrade(args)
         }
-        _ => {}
+        Commands::Package(args) => {
+            match &args.package_commands {
+                PackageCommands::Info(args) => {
+                    system.package_info(args)
+                }
+                PackageCommands::Search(args) => {
+                    system.package_search(args)
+                }
+                PackageCommands::Install(args) => {
+                    system.package_install(args)
+                }
+                PackageCommands::Remove(args) => {
+                    system.package_remove(args)
+                }
+            }
+        }
     }
-
-    //return ExitCode::SUCCESS;
 }
 
 // fn main() -> ExitCode {

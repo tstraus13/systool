@@ -1,5 +1,5 @@
 use clap::{Parser, Subcommand};
-use crate::command_args::{PackageInfoCommandArgs, PackageInstallCommandArgs, PackageRemoveCommandArgs, PackageSearchCommandArgs, RefreshCommandArgs, UpgradeCommandArgs};
+use crate::command_args::*;
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
@@ -7,11 +7,6 @@ pub struct SysTool {
     /// The Command you wish to execute
     #[command(subcommand)]
     pub command: Commands,
-    // Force / Accept Any User Input
-    // #[arg(short, long)]
-    // force: String,
-    // #[arg(short, long)]
-    // output: String
 }
 
 #[derive(Subcommand, Debug)]
@@ -20,8 +15,9 @@ pub enum Commands {
     Refresh(RefreshCommandArgs),
     /// Upgrade the system packages
     Upgrade(UpgradeCommandArgs),
-    /// Repository package commands
-    Package(PackageCommands)
+    #[clap(name = "pkg")]
+    /// System repositories package commands
+    Package(PackageCommandArgs)
 }
 
 #[derive(Subcommand, Debug)]

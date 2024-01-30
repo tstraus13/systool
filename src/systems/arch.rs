@@ -6,7 +6,7 @@ pub struct Arch;
 
 // TODO: Use "which" command to get location of pacman
 impl System for Arch {
-    fn refresh(command_args:RefreshCommandArgs) -> ExitCode {
+    fn refresh(&self, command_args:&RefreshCommandArgs) -> ExitCode {
         let mut args: Vec<&str> = Vec::new();
 
         args.push("-Syy");
@@ -36,12 +36,12 @@ impl System for Arch {
         }
     }
 
-    fn upgrade(&self) -> ExitCode {
+    fn upgrade(&self, upgrade_args: &UpgradeCommandArgs) -> ExitCode {
         let mut args: Vec<&str> = Vec::new();
 
         args.push("-Syu");
 
-        if self.force {
+        if upgrade_args.force {
             args.push("--noconfirm");
         }
 
@@ -49,7 +49,7 @@ impl System for Arch {
         upgrade.args(&args);
         upgrade.stdin(Stdio::inherit());
 
-        if self.show_output {
+        if upgrade_args.show_output {
             upgrade
                 .stdout(Stdio::inherit())
                 .stderr(Stdio::inherit());
@@ -71,11 +71,11 @@ impl System for Arch {
         }
     }
 
-    fn package_search(&self, pkg_name: String) -> ExitCode {
+    fn package_search(&self, pkg_search_args: &PackageSearchCommandArgs) -> ExitCode {
         let mut args: Vec<&str> = Vec::new();
 
         args.push("-Ssy");
-        args.push(&pkg_name);
+        args.push(&pkg_search_args.package_name);
 
         let mut search = Command::new("/usr/bin/pacman");
         search.args(&args);
@@ -98,11 +98,11 @@ impl System for Arch {
         }
     }
 
-    fn package_info(&self, pkg_name: String) -> ExitCode {
+    fn package_info(&self, pkg_info_args: &PackageInfoCommandArgs) -> ExitCode {
         let mut args: Vec<&str> = Vec::new();
 
         args.push("-Siy");
-        args.push(&pkg_name);
+        args.push(&pkg_info_args.package_name);
 
         let mut search = Command::new("/usr/bin/pacman");
         search.args(&args);
@@ -125,15 +125,17 @@ impl System for Arch {
         }
     }
 
-    fn package_install(&self, pkg_name: String) -> ExitCode {
+    fn package_install(&self, pkg_install_args: &PackageInstallCommandArgs) -> ExitCode {
         let mut args: Vec<&str> = Vec::new();
         args.push("-Sy");
 
-        if self.force {
-            args.push("--noconfirm");
+        if pkg_install_args.force {
+            args.push("-y");
         }
 
-        args.push(&pkg_name);
+        for package in pkg_install_args.packages.iter() {
+            args.push(package);
+        }
 
         let mut install = Command::new("/usr/bin/pacman");
         install.args(&args);
@@ -157,15 +159,17 @@ impl System for Arch {
         }
     }
 
-    fn package_remove(&self, pkg_name: String) -> ExitCode {
+    fn package_remove(&self, pkg_remove_args: &PackageRemoveCommandArgs) -> ExitCode {
         let mut args: Vec<&str> = Vec::new();
         args.push("-R");
 
-        if self.force {
-            args.push("--noconfirm");
+        if pkg_remove_args.force {
+            args.push("-y");
         }
 
-        args.push(&pkg_name);
+        for package in pkg_remove_args.packages.iter() {
+            args.push(package);
+        }
 
         let mut install = Command::new("/usr/bin/pacman");
         install.args(&args);

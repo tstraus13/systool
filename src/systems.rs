@@ -13,12 +13,12 @@ pub mod void;
 pub mod arch;
 
 pub trait System {
-    fn refresh(command_args:RefreshCommandArgs) -> ExitCode;
-    fn upgrade(command_args:UpgradeCommandArgs) -> ExitCode;
-    fn package_search(&self, pkg_name: String) -> ExitCode;
-    fn package_info(&self, pkg_name: String) -> ExitCode;
-    fn package_install(&self, pkg_name: String) -> ExitCode;
-    fn package_remove(&self, pkg_name: String) -> ExitCode;
+    fn refresh(&self, command_args:&RefreshCommandArgs) -> ExitCode;
+    fn upgrade(&self, command_args:&UpgradeCommandArgs) -> ExitCode;
+    fn package_search(&self, command_args:&PackageSearchCommandArgs) -> ExitCode;
+    fn package_info(&self, command_args:&PackageInfoCommandArgs) -> ExitCode;
+    fn package_install(&self, command_args:&PackageInstallCommandArgs) -> ExitCode;
+    fn package_remove(&self, command_args:&PackageRemoveCommandArgs) -> ExitCode;
 }
 
 pub fn detect_system() ->  Box<dyn System> {
@@ -51,6 +51,11 @@ pub fn detect_system() ->  Box<dyn System> {
                         x if x.contains("voidlinux") => {
                             println!("Void Detected!");
                             return Box::new(Void)
+                        }
+                        ,
+                        x if x.contains("arch") => {
+                            println!("Void Detected!");
+                            return Box::new(Arch)
                         }
                         _ => {}
                     }

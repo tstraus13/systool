@@ -1,13 +1,13 @@
 use crate::systems::System;
 use std::process::{Command, ExitCode, Stdio};
-use crate::command_args::RefreshCommandArgs;
+use crate::command_args::*;
 
 pub struct MacOS;
 
 // TODO: Use "which" command to get location of brew
 impl System for MacOS {
 
-    fn refresh(command_args: RefreshCommandArgs) -> ExitCode {
+    fn refresh(&self, command_args: &RefreshCommandArgs) -> ExitCode {
 
         let mut args: Vec<&str> = Vec::new();
         args.push("update");
@@ -38,7 +38,7 @@ impl System for MacOS {
         }
     }
 
-    fn upgrade(&self) -> ExitCode {
+    fn upgrade(&self, upgrade_args: &UpgradeCommandArgs) -> ExitCode {
 
         let mut args: Vec<&str> = Vec::new();
         args.push("upgrade");
@@ -46,7 +46,7 @@ impl System for MacOS {
         let mut upgrade = Command::new("/opt/homebrew/bin/brew");
         upgrade.args(&args);
 
-        if self.show_output {
+        if upgrade_args.show_output {
             upgrade
                 .stdout(Stdio::inherit())
                 .stderr(Stdio::inherit());
@@ -68,11 +68,11 @@ impl System for MacOS {
         }
     }
 
-    fn package_search(&self, pkg_name: String) -> ExitCode {
+    fn package_search(&self, pkg_search_args: &PackageSearchCommandArgs) -> ExitCode {
 
         let mut args: Vec<&str> = Vec::new();
         args.push("search");
-        args.push(&pkg_name);
+        args.push(&pkg_search_args.package_name);
 
         let mut search = Command::new("/opt/homebrew/bin/brew");
         search.args(&args);
@@ -95,11 +95,11 @@ impl System for MacOS {
         }
     }
 
-    fn package_info(&self, pkg_name: String) -> ExitCode {
+    fn package_info(&self, pkg_info_args: &PackageInfoCommandArgs) -> ExitCode {
 
         let mut args: Vec<&str> = Vec::new();
         args.push("info");
-        args.push(&pkg_name);
+        args.push(&pkg_info_args.package_name);
 
         let mut info = Command::new("/opt/homebrew/bin/brew");
         info.args(&args);
@@ -122,15 +122,17 @@ impl System for MacOS {
         }
     }
 
-    fn package_install(&self, pkg_name: String) -> ExitCode {
+    fn package_install(&self, pkg_install_args: &PackageInstallCommandArgs) -> ExitCode {
         let mut args: Vec<&str> = Vec::new();
         args.push("install");
 
-        // if self.force {
-        //     args.push("-y");
-        // }
+        if pkg_install_args.force {
+            args.push("-y");
+        }
 
-        args.push(&pkg_name);
+        for package in pkg_install_args.packages.iter() {
+            args.push(package);
+        }
 
         let mut install = Command::new("/opt/homebrew/bin/brew");
         install.args(&args);
@@ -154,15 +156,17 @@ impl System for MacOS {
         }
     }
 
-    fn package_remove(&self, pkg_name: String) -> ExitCode {
+    fn package_remove(&self, pkg_remove_args: &PackageRemoveCommandArgs) -> ExitCode {
         let mut args: Vec<&str> = Vec::new();
         args.push("remove");
 
-        // if self.force {
-        //    args.push("-y");
-        // }
+        if pkg_remove_args.force {
+           args.push("-y");
+        }
 
-        args.push(&pkg_name);
+        for package in pkg_remove_args.packages.iter() {
+            args.push(package);
+        }
 
         let mut remove = Command::new("/opt/homebrew/bin/brew");
         remove.args(&args);

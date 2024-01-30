@@ -1,12 +1,12 @@
 use std::process::{Command, ExitCode, Stdio};
-use crate::command_args::RefreshCommandArgs;
+use crate::command_args::*;
 use crate::systems::System;
 
 pub struct Fedora;
 
 // TODO: Use "which" command to get location of dnf
 impl System for Fedora {
-    fn refresh(command_args: RefreshCommandArgs) -> ExitCode {
+    fn refresh(&self, command_args: &RefreshCommandArgs) -> ExitCode {
         let mut args: Vec<&str> = Vec::new();
 
         args.push("check-update");
@@ -37,12 +37,12 @@ impl System for Fedora {
         }
     }
 
-    fn upgrade(&self) -> ExitCode {
+    fn upgrade(&self, upgrade_args: &UpgradeCommandArgs) -> ExitCode {
         let mut args: Vec<&str> = Vec::new();
 
         args.push("update");
 
-        if self.force {
+        if upgrade_args.force {
             args.push("-y");
         }
 
@@ -50,7 +50,7 @@ impl System for Fedora {
         upgrade.args(&args);
         upgrade.stdin(Stdio::inherit());
 
-        if self.show_output {
+        if upgrade_args.show_output {
             upgrade
                 .stdout(Stdio::inherit())
                 .stderr(Stdio::inherit());
@@ -72,11 +72,11 @@ impl System for Fedora {
         }
     }
 
-    fn package_search(&self, pkg_name: String) -> ExitCode {
+    fn package_search(&self, pkg_search_args: &PackageSearchCommandArgs) -> ExitCode {
         let mut args: Vec<&str> = Vec::new();
 
         args.push("search");
-        args.push(&pkg_name);
+        args.push(&pkg_search_args.package_name);
 
         let mut search = Command::new("/usr/bin/dnf");
         search.args(&args);
@@ -99,10 +99,10 @@ impl System for Fedora {
         }
     }
 
-    fn package_info(&self, pkg_name: String) -> ExitCode {
+    fn package_info(&self, pkg_info_args: &PackageInfoCommandArgs) -> ExitCode {
         let mut args: Vec<&str> = Vec::new();
         args.push("info");
-        args.push(&pkg_name);
+        args.push(&pkg_info_args.package_name);
 
         let mut info = Command::new("/usr/bin/dnf");
         info.args(&args);
@@ -125,15 +125,17 @@ impl System for Fedora {
         }
     }
 
-    fn package_install(&self, pkg_name: String) -> ExitCode {
+    fn package_install(&self, pkg_install_args: &PackageInstallCommandArgs) -> ExitCode {
         let mut args: Vec<&str> = Vec::new();
         args.push("install");
 
-        if self.force {
+        if pkg_install_args.force {
             args.push("-y");
         }
 
-        args.push(&pkg_name);
+        for package in pkg_install_args.packages.iter() {
+            args.push(package);
+        }
 
         let mut install = Command::new("/usr/bin/dnf");
         install.args(&args);
@@ -157,15 +159,17 @@ impl System for Fedora {
         }
     }
 
-    fn package_remove(&self, pkg_name: String) -> ExitCode {
+    fn package_remove(&self, pkg_remove_args: &PackageRemoveCommandArgs) -> ExitCode {
         let mut args: Vec<&str> = Vec::new();
         args.push("remove");
 
-        if self.force {
+        if pkg_remove_args.force {
             args.push("-y");
         }
 
-        args.push(&pkg_name);
+        for package in pkg_remove_args.packages.iter() {
+            args.push(package);
+        }
 
         let mut remove = Command::new("/usr/bin/dnf");
         remove.args(&args);
