@@ -21,10 +21,35 @@ pub trait System {
     fn package_remove(&self, command_args:&PackageRemoveCommandArgs) -> ExitCode;
 }
 
+fn which(command: &str) -> String {
+    let which_result = Command::new("which")
+        .arg(command)
+        .output();
+
+    match which_result {
+        Ok(output) => {
+            let path_result = String::from_utf8(output.stdout);
+
+            match path_result {
+                Ok(path) => {
+                    return path.trim().to_string();
+                }
+                Err(why) => {
+                    panic!("There was an error parsing the output of the which command!\n\n{}", why);
+                }
+            }
+        }
+        Err(why) => {
+            panic!("There was an error running the which command!\n\n{}", why);
+        }
+    }
+}
+
 pub fn detect_system() ->  Box<dyn System> {
 
-    // Use lsb_release to get system info
-    let lsb_release_result = Command::new("lsb_release")
+    // Check for system type by lsb_release command
+    let lsb_release_path = which("lsb_release");
+    let lsb_release_result = Command::new(lsb_release_path)
         .arg("-a")
         .output();
 
@@ -71,7 +96,8 @@ pub fn detect_system() ->  Box<dyn System> {
     }
 
     // Check for system type by uname command
-    let uname_result = Command::new("uname")
+    let uname_path = which("uname");
+    let uname_result = Command::new(uname_path)
         .arg("-a")
         .output()
         ;

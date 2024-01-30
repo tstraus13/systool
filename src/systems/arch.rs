@@ -1,6 +1,6 @@
 use std::process::{Command, ExitCode, Stdio};
 use crate::command_args::*;
-use crate::systems::System;
+use crate::systems::*;
 
 pub struct Arch;
 
@@ -11,7 +11,8 @@ impl System for Arch {
 
         args.push("-Syy");
 
-        let mut refresh = Command::new("/usr/bin/pacman");
+        let refresh_path = which("pacman");
+        let mut refresh = Command::new(refresh_path);
         refresh.args(&args);
 
         if command_args.show_output {
