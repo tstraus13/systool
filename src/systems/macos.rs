@@ -3,7 +3,6 @@ use crate::systems::*;
 
 pub struct MacOS;
 
-// TODO: Use "which" command to get location of brew
 impl System for MacOS {
 
     fn refresh(&self, command_args: &RefreshCommandArgs) -> ExitCode {

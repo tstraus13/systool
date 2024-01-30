@@ -3,7 +3,6 @@ use crate::systems::*;
 
 pub struct Void;
 
-// TODO: Use "which" command to get location of xbps-*
 impl System for Void {
     fn refresh(&self, command_args: &RefreshCommandArgs) -> ExitCode {
         let mut args: Vec<&str> = Vec::new();

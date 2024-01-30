@@ -3,7 +3,6 @@ use crate::systems::*;
 
 pub struct Arch;
 
-// TODO: Use "which" command to get location of pacman
 impl System for Arch {
     fn refresh(&self, command_args:&RefreshCommandArgs) -> ExitCode {
         let mut args: Vec<&str> = Vec::new();
