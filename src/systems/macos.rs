@@ -15,7 +15,7 @@ impl System for MacOS {
         let mut refresh = Command::new(refresh_command_path);
         refresh.args(&args);
 
-        if command_args.show_output {
+        if command_args.output {
             refresh
                 .stdout(Stdio::inherit())
                 .stderr(Stdio::inherit());
@@ -46,7 +46,7 @@ impl System for MacOS {
         let mut upgrade = Command::new(upgrade_command_path);
         upgrade.args(&args);
 
-        if upgrade_args.show_output {
+        if upgrade_args.output {
             upgrade
                 .stdout(Stdio::inherit())
                 .stderr(Stdio::inherit());

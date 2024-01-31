@@ -5,14 +5,14 @@ use crate::commands::*;
 pub struct RefreshCommandArgs {
     /// Show output of the command
     #[arg(short, long)]
-    pub show_output: bool
+    pub output: bool
 }
 
 #[derive(Args, Debug)]
 pub struct UpgradeCommandArgs {
     /// Show output of the command
     #[arg(short, long)]
-    pub show_output: bool,
+    pub output: bool,
     /// Accept any/all user input
     #[arg(short, long)]
     pub force: bool
