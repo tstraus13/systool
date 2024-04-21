@@ -67,7 +67,7 @@ pub fn detect_system() ->  Box<dyn System> {
                                 println!("macOS Detected.");
                                 return Box::new(MacOS)
                             },
-                            x if x.contains("ubuntu") || x.contains("debian") => {
+                            x if x.contains("ubuntu") || x.contains("debian") || x.contains("devuan") => {
                                 println!("Ubuntu/Debian Detected.");
                                 return Box::new(Ubuntu)
                             },
