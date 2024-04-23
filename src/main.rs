@@ -5,7 +5,7 @@ mod commands;
 use std::process::ExitCode;
 use clap::Parser;
 use crate::commands::*;
-use crate::systems::detect_system;
+use crate::systems::{detect_system, find_file};
 
 
 
@@ -37,6 +37,13 @@ fn main() -> ExitCode {
                 }
                 PackageCommands::Remove(args) => {
                     system.package_remove(args)
+                }
+            }
+        }
+        Commands::Find(args) => {
+            match &args.find_commands {
+                FindCommands::File(args) => {
+                    find_file(args)
                 }
             }
         }

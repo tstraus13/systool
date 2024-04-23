@@ -1,4 +1,6 @@
+use std::fs;
 use std::process::{Command, ExitCode};
+use rayon::prelude::*;
 use crate::command_args::*;
 use crate::systems::fedora::Fedora;
 use crate::systems::macos::MacOS;
@@ -45,6 +47,60 @@ fn which(command: &str) -> String {
     }
 }
 
+pub fn find_file(command_args: &FindFileCommandArgs) -> ExitCode {
+
+    fs::read_dir(&command_args.path).into_par_iter().for_each(|dir_content| {
+        dir_content.par_bridge().for_each(|item_result| {
+            match item_result {
+                Ok(item) => {
+                    if item.path().is_dir() {
+                        let new_args = FindFileCommandArgs {
+                            file_name: command_args.file_name.to_string(),
+                            path: item.path().to_str().unwrap().to_string()
+                        };
+                        find_file(&new_args);
+                    }
+                    else {
+                        //println!("NOT FOUND {}", item.path().to_str().unwrap());
+                        if item.file_name().to_str().unwrap().to_string().contains(&command_args.file_name) {
+                            println!("FOUND! {}", item.path().to_str().unwrap())
+                        }
+                    }
+                }
+                Err(why) => {
+                    panic!("There was an error finding the file!\n\n{}", why)
+                }
+            }
+        });
+    });
+
+    /*for dir_content in fs::read_dir(&command_args.path) {
+        for item_result in dir_content {
+            match item_result {
+                Ok(item) => {
+                    if item.path().is_dir() {
+                        let new_args = FindFileCommandArgs {
+                            file_name: command_args.file_name.to_string(),
+                            path: item.path().to_str().unwrap().to_string()
+                        };
+                        find_file(&new_args);
+                    }
+                    else {
+                        //println!("NOT FOUND {}", item.path().to_str().unwrap());
+                        if item.file_name().to_str().unwrap().to_string().contains(&command_args.file_name) {
+                            println!("FOUND! {}", item.path().to_str().unwrap())
+                        }
+                    }
+                }
+                Err(why) => {
+                    panic!("There was an error finding the file!\n\n{}", why)
+                }
+            }
+        }
+    }*/
+    return ExitCode::SUCCESS;
+}
+
 pub fn detect_system() ->  Box<dyn System> {
 
     // Check for system type by lsb_release command
@@ -68,7 +124,7 @@ pub fn detect_system() ->  Box<dyn System> {
                                 return Box::new(MacOS)
                             },
                             x if x.contains("ubuntu") || x.contains("debian") || x.contains("devuan") => {
-                                println!("Ubuntu/Debian Detected.");
+                                println!("Ubuntu/Debian/Devuan Detected.");
                                 return Box::new(Ubuntu)
                             },
                             x if x.contains("fedora") => {

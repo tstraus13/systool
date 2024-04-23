@@ -17,7 +17,9 @@ pub enum Commands {
     Upgrade(UpgradeCommandArgs),
     #[clap(name = "pkg")]
     /// System repositories package commands
-    Package(PackageCommandArgs)
+    Package(PackageCommandArgs),
+    /// Find command
+    Find(FindCommandArgs)
 }
 
 #[derive(Subcommand, Debug)]
@@ -30,4 +32,14 @@ pub enum PackageCommands {
     Install(PackageInstallCommandArgs),
     /// Remove package(s) from the system repositories
     Remove(PackageRemoveCommandArgs)
+}
+
+#[derive(Subcommand, Debug)]
+pub enum FindCommands {
+    /// Find a file by name
+    File(FindFileCommandArgs),
+    //// Find a directory
+    //Dir(),
+    //// Find text within file contents
+    //Text()
 }

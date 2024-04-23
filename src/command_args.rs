@@ -19,7 +19,7 @@ pub struct UpgradeCommandArgs {
 }
 
 #[derive(Args, Debug)]
-pub struct PackageCommandArgs{
+pub struct PackageCommandArgs {
     #[command(subcommand)]
     pub package_commands: PackageCommands
 }
@@ -56,4 +56,18 @@ pub struct PackageRemoveCommandArgs {
     /// Accept any/all user input
     #[arg(short, long)]
     pub force: bool
+}
+
+#[derive(Args, Debug)]
+pub struct FindCommandArgs {
+    #[command(subcommand)]
+    pub find_commands: FindCommands
+}
+
+#[derive(Args, Debug)]
+pub struct FindFileCommandArgs {
+    /// Package(s) to remove
+    //#[arg(short, long)]
+    pub file_name: String,
+    pub path: String
 }
