@@ -66,8 +66,24 @@ pub struct FindCommandArgs {
 
 #[derive(Args, Debug)]
 pub struct FindFileCommandArgs {
-    /// Package(s) to remove
-    //#[arg(short, long)]
+    /// File Name to look for
     pub file_name: String,
-    pub path: String
+    pub path: String,
+    #[arg(long)]
+    pub hidden: bool,
+    #[arg(short, long)]
+    #[clap(name = "symlinks")]
+    pub follow_symlinks: bool,
+}
+
+#[derive(Args, Debug)]
+pub struct FindDirectoryCommandArgs {
+    /// File Name to look for
+    pub directory_name: String,
+    pub path: String,
+    #[arg(short, long)]
+    pub hidden: bool,
+    #[arg(short, long)]
+    #[clap(name = "symlinks")]
+    pub follow_symlinks: bool,
 }

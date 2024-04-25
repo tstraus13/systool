@@ -1,5 +1,8 @@
+use std::cell::RefCell;
 use std::fs;
 use std::process::{Command, ExitCode};
+use std::rc::Rc;
+use std::sync::mpsc::channel;
 use rayon::prelude::*;
 use crate::command_args::*;
 use crate::systems::fedora::Fedora;
@@ -47,23 +50,34 @@ fn which(command: &str) -> String {
     }
 }
 
+/// TODO: Figure out a way to keep this performant but to respond with failure if nothing found.
+/// Having issues figuring out how to do recursive parallel calls but to be able to return once.
 pub fn find_file(command_args: &FindFileCommandArgs) -> ExitCode {
 
-    fs::read_dir(&command_args.path).into_par_iter().for_each(|dir_content| {
-        dir_content.par_bridge().for_each(|item_result| {
-            match item_result {
+     fs::read_dir(&command_args.path).into_par_iter().for_each(|dir_content| {
+        dir_content.par_bridge().for_each(|dir_item| {
+            match dir_item {
                 Ok(item) => {
                     if item.path().is_dir() {
                         let new_args = FindFileCommandArgs {
                             file_name: command_args.file_name.to_string(),
-                            path: item.path().to_str().unwrap().to_string()
+                            path: item.path().to_str().unwrap().to_string(),
+                            hidden: command_args.hidden,
+                            follow_symlinks: command_args.follow_symlinks
                         };
                         find_file(&new_args);
                     }
                     else {
-                        //println!("NOT FOUND {}", item.path().to_str().unwrap());
-                        if item.file_name().to_str().unwrap().to_string().contains(&command_args.file_name) {
-                            println!("FOUND! {}", item.path().to_str().unwrap())
+                        match item.file_name().to_str()
+                        {
+                            Some(name) => {
+                                if name.to_string().contains(&command_args.file_name) {
+                                    println!("FOUND! {}", item.path().to_str().unwrap())
+                                }
+                            }
+                            None => {
+                                panic!("There was an error finding the file!")
+                            }
                         }
                     }
                 }
@@ -74,30 +88,6 @@ pub fn find_file(command_args: &FindFileCommandArgs) -> ExitCode {
         });
     });
 
-    /*for dir_content in fs::read_dir(&command_args.path) {
-        for item_result in dir_content {
-            match item_result {
-                Ok(item) => {
-                    if item.path().is_dir() {
-                        let new_args = FindFileCommandArgs {
-                            file_name: command_args.file_name.to_string(),
-                            path: item.path().to_str().unwrap().to_string()
-                        };
-                        find_file(&new_args);
-                    }
-                    else {
-                        //println!("NOT FOUND {}", item.path().to_str().unwrap());
-                        if item.file_name().to_str().unwrap().to_string().contains(&command_args.file_name) {
-                            println!("FOUND! {}", item.path().to_str().unwrap())
-                        }
-                    }
-                }
-                Err(why) => {
-                    panic!("There was an error finding the file!\n\n{}", why)
-                }
-            }
-        }
-    }*/
     return ExitCode::SUCCESS;
 }
 

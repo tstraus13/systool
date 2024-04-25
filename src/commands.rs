@@ -38,8 +38,8 @@ pub enum PackageCommands {
 pub enum FindCommands {
     /// Find a file by name
     File(FindFileCommandArgs),
-    //// Find a directory
-    //Dir(),
+    /// Find a directory
+    Directory(FindDirectoryCommandArgs),
     //// Find text within file contents
     //Text()
 }
