@@ -52,6 +52,7 @@ fn which(command: &str) -> String {
 
 /// TODO: Figure out a way to keep this performant but to respond with failure if nothing found.
 /// Having issues figuring out how to do recursive parallel calls but to be able to return once.
+/// https://blog.logrocket.com/implementing-data-parallelism-rayon-rust/
 pub fn find_file(command_args: &FindFileCommandArgs) -> ExitCode {
 
      fs::read_dir(&command_args.path).into_par_iter().for_each(|dir_content| {
