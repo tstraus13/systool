@@ -1,5 +1,6 @@
 use std::cell::RefCell;
 use std::fs;
+use std::fs::DirEntry;
 use std::process::{Command, ExitCode};
 use std::rc::Rc;
 use std::sync::mpsc::channel;
@@ -50,44 +51,152 @@ fn which(command: &str) -> String {
     }
 }
 
-/// TODO: Figure out a way to keep this performant but to respond with failure if nothing found.
-/// Having issues figuring out how to do recursive parallel calls but to be able to return once.
-/// https://blog.logrocket.com/implementing-data-parallelism-rayon-rust/
 pub fn find_file(command_args: &FindFileCommandArgs) -> ExitCode {
 
-     fs::read_dir(&command_args.path).into_par_iter().for_each(|dir_content| {
-        dir_content.par_bridge().for_each(|dir_item| {
-            match dir_item {
-                Ok(item) => {
-                    if item.path().is_dir() {
-                        let new_args = FindFileCommandArgs {
-                            file_name: command_args.file_name.to_string(),
-                            path: item.path().to_str().unwrap().to_string(),
-                            hidden: command_args.hidden,
-                            follow_symlinks: command_args.follow_symlinks
-                        };
-                        find_file(&new_args);
-                    }
-                    else {
-                        match item.file_name().to_str()
-                        {
-                            Some(name) => {
-                                if name.to_string().contains(&command_args.file_name) {
-                                    println!("FOUND! {}", item.path().to_str().unwrap())
-                                }
-                            }
-                            None => {
-                                panic!("There was an error finding the file!")
-                            }
-                        }
-                    }
-                }
-                Err(why) => {
-                    panic!("There was an error finding the file!\n\n{}", why)
-                }
+    fn file_name_lowercase(entry: &DirEntry) -> String {
+        match entry.file_name().to_str()
+        {
+            Some(name) => {
+                return name.to_string().to_lowercase();
             }
+            None => {
+                panic!("There was an error parsing the file name!")
+            }
+        }
+    }
+
+    fn proc_file(entry: DirEntry, args: &FindFileCommandArgs, found_items: &mut Vec<String>) {
+        if file_name_lowercase(&entry).contains(&args.file_name.to_lowercase()) {
+            println!("FOUND! {}", entry.path().to_str().unwrap().to_string());
+            found_items.push(entry.path().to_str().unwrap().to_string())
+        }
+    }
+
+    fn proc_dir(entry: DirEntry, current_args: &FindFileCommandArgs, found_items: &mut Vec<String>) {
+        let new_args = FindFileCommandArgs {
+            file_name: current_args.file_name.to_string(),
+            path: entry.path().to_str().unwrap().to_string(),
+            hidden: current_args.hidden,
+            follow_symlinks: current_args.follow_symlinks
+        };
+        find(&new_args, found_items);
+    }
+
+    fn find(command_args: &FindFileCommandArgs, found_items: &mut Vec<String>) {
+
+        rayon::scope(|scope| {
+            scope.spawn(|_| {
+
+                let contents = fs::read_dir(&command_args.path).into_iter();
+
+                for dir_content in contents {
+                    rayon::scope(|dcs| {
+                        dcs.spawn(|_| {
+
+                            let dir_items = dir_content.into_iter();
+
+                            for item in dir_items {
+                                rayon::scope(|is| {
+                                   is.spawn(|_| {
+
+                                       match item {
+                                           Ok(item) => {
+
+                                               match item.file_type() {
+                                                   Ok(file_type) => {
+                                                       // Item type is a file
+                                                        if file_type.is_file() {
+                                                            proc_file(item, &command_args, found_items);
+                                                        }
+                                                        // Item type is a directory
+                                                        else if file_type.is_dir() {
+                                                            proc_dir(item, &command_args, found_items);
+                                                        }
+                                                        // Item type is a symlink
+                                                        else if file_type.is_symlink() && command_args.follow_symlinks {
+                                                            if item.path().is_file() {
+                                                                proc_file(item, &command_args, found_items);
+                                                            }
+                                                            else if item.path().is_dir() {
+                                                                proc_dir(item, &command_args, found_items);
+                                                            }
+                                                        }
+                                                   }
+                                                   Err(why) => {
+                                                       panic!("There was an error finding the file!\n\n{}", why)
+                                                   }
+                                               }
+                                           }
+                                           Err(why) => {
+                                               panic!("There was an error finding the file!\n\n{}", why)
+                                           }
+                                       }
+
+                                   });
+                                });
+                            }
+
+                        });
+                    });
+                }
+            });
         });
-    });
+
+        /*rayon::scope(|z| {
+            z.spawn(|| {
+                fs::read_dir(&command_args.path).into_iter().for_each(|dir_content| {
+                    rayon::scope(|s| {
+                        s.spawn(|| {
+                            dir_content.into_iter().for_each(|dir_item| {
+                                rayon::scope(|r| {
+                                    r.spawn(|| {
+                                        match dir_item {
+                                            Ok(item) => {
+                                                if item.path().is_dir() {
+                                                    let new_args = FindFileCommandArgs {
+                                                        file_name: command_args.file_name.to_string(),
+                                                        path: item.path().to_str().unwrap().to_string(),
+                                                        hidden: command_args.hidden,
+                                                        follow_symlinks: command_args.follow_symlinks
+                                                    };
+                                                    find(&new_args, found_items);
+                                                }
+                                                else {
+                                                    match item.file_name().to_str()
+                                                    {
+                                                        Some(name) => {
+                                                            if name.to_string().to_lowercase().contains(&command_args.file_name.to_lowercase()) {
+                                                                println!("FOUND! {}", item.path().to_str().unwrap());
+                                                                found_items.push(item.path().to_str().unwrap().to_string())
+                                                            }
+                                                        }
+                                                        None => {
+                                                            panic!("There was an error finding the file!")
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                            Err(why) => {
+                                                panic!("There was an error finding the file!\n\n{}", why)
+                                            }
+                                        }
+                                    });
+                                });
+                            });
+                        });
+                    });
+                });
+            });
+        });*/
+    }
+
+    let found_items = &mut Vec::new();
+
+    find(command_args, found_items);
+
+    if found_items.is_empty() {
+        return ExitCode::FAILURE;
+    }
 
     return ExitCode::SUCCESS;
 }
