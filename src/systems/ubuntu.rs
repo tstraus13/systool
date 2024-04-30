@@ -1,6 +1,6 @@
 use std::process::{Command, ExitCode, Stdio};
 use crate::systems::*;
-
+use crate::functions::*;
 
 pub struct Ubuntu;
 

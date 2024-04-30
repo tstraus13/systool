@@ -1,11 +1,17 @@
 mod systems;
 mod command_args;
 mod commands;
+mod file;
+mod functions;
+mod directory;
 
 use std::process::ExitCode;
 use clap::Parser;
 use crate::commands::*;
-use crate::systems::{detect_system, find_file};
+use crate::functions::*;
+use crate::file::*;
+use crate::directory::*;
+
 
 fn main() -> ExitCode {
 
@@ -39,12 +45,12 @@ fn main() -> ExitCode {
             }
         }
         Commands::Find(args) => {
-            match &args.find_commands {
+            return match &args.find_commands {
                 FindCommands::File(args) => {
                     find_file(args)
                 },
                 FindCommands::Directory(args) => {
-                    return ExitCode::SUCCESS;
+                    find_dir(args)
                 }
             }
         }

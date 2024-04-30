@@ -81,7 +81,7 @@ pub struct FindDirectoryCommandArgs {
     /// File Name to look for
     pub directory_name: String,
     pub path: String,
-    #[arg(short, long)]
+    #[arg(long)]
     pub hidden: bool,
     #[arg(short, long)]
     #[clap(name = "symlinks")]
