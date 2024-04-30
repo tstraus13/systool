@@ -15,6 +15,7 @@ Commands:
   refresh  Refresh the system repositories
   upgrade  Upgrade the system packages
   pkg      System repositories package commands
+  find     Find command
   help     Print this message or the help of the given subcommand(s)
 
 Options:
