@@ -1,10 +1,10 @@
 use std::fs;
 use std::fs::DirEntry;
 use std::process::ExitCode;
-use colored::Colorize;
-use crate::command_args::{FindDirectoryCommandArgs};
+use colored::*;
+use crate::command_args::{FindTextCommandArgs};
 
-pub fn find_dir(command_args: &FindDirectoryCommandArgs) -> ExitCode {
+pub fn find_text(command_args: &FindTextCommandArgs) -> ExitCode {
 
     let found_items = &mut Vec::new();
 
@@ -15,10 +15,9 @@ pub fn find_dir(command_args: &FindDirectoryCommandArgs) -> ExitCode {
     }
 
     return ExitCode::SUCCESS;
-
 }
 
-fn traverse(command_args: &FindDirectoryCommandArgs, found_items: &mut Vec<String>) {
+fn traverse(command_args: &FindTextCommandArgs, found_items: &mut Vec<String>) {
 
     rayon::scope(|scope| {
         scope.spawn(|_| {
@@ -55,7 +54,7 @@ fn traverse(command_args: &FindDirectoryCommandArgs, found_items: &mut Vec<Strin
                                                 Ok(file_type) => {
                                                     // Item type is a file
                                                     if file_type.is_file() {
-                                                        return;
+                                                        proc_file(item, &command_args, found_items);
                                                     }
                                                     // Item type is a directory
                                                     else if file_type.is_dir() {
@@ -64,7 +63,7 @@ fn traverse(command_args: &FindDirectoryCommandArgs, found_items: &mut Vec<Strin
                                                     // Item type is a symlink
                                                     else if file_type.is_symlink() && command_args.follow_symlinks {
                                                         if item.path().is_file() {
-                                                            return;
+                                                            proc_file(item, &command_args, found_items);
                                                         }
                                                         else if item.path().is_dir() {
                                                             proc_dir(item, &command_args, found_items);
@@ -92,29 +91,49 @@ fn traverse(command_args: &FindDirectoryCommandArgs, found_items: &mut Vec<Strin
     });
 }
 
-fn proc_dir(entry: DirEntry, current_args: &FindDirectoryCommandArgs, found_items: &mut Vec<String>) {
-    if dir_name_lowercase(&entry).contains(&current_args.directory_name.to_lowercase()) {
-        println!("{} {}", "FOUND!".bold(), entry.path().to_str().unwrap().to_string());
-        found_items.push(entry.path().to_str().unwrap().to_string())
-    }
+fn proc_file(entry: DirEntry, args: &FindTextCommandArgs, found_items: &mut Vec<String>) {
 
-    let new_args = FindDirectoryCommandArgs {
-        directory_name: current_args.directory_name.to_string(),
+    if !binaryornot::is_binary(entry.path()).expect("Unable to read file!") {
+        let contents = fs::read_to_string(entry.path())
+            .expect("Unable to read file!");
+
+        let found = contents.to_lowercase().contains(&args.text);
+
+        if found {
+
+            println!("{} {}", "FOUND!".bold(), entry.path().to_str().unwrap().to_string());
+
+            found_items.push(entry.path().to_str().unwrap().to_string());
+
+            for (i, line) in contents.lines().enumerate() {
+
+                let line_lower = line.to_lowercase();
+                let text_lower = args.text.to_lowercase();
+
+                if line_lower.contains(&args.text) {
+
+                    let text_len = text_lower.len();
+                    let text_start = line_lower.find(&text_lower).unwrap();
+
+                    let start = &line[..text_start];
+                    let matched = &line[text_start..(text_start + text_len)]
+                        .bold().yellow();
+                    let end = &line[(text_start + text_len)..];
+
+                    println!("\t{}: {}{}{}", (i + 1).to_string().bold(), start, matched, end);
+                }
+            }
+            println!();
+        }
+    }
+}
+
+fn proc_dir(entry: DirEntry, current_args: &FindTextCommandArgs, found_items: &mut Vec<String>) {
+    let new_args = FindTextCommandArgs {
+        text: current_args.text.to_string(),
         path: entry.path().to_str().unwrap().to_string(),
         hidden: current_args.hidden,
         follow_symlinks: current_args.follow_symlinks
     };
     traverse(&new_args, found_items);
-}
-
-fn dir_name_lowercase(entry: &DirEntry) -> String {
-    match entry.path().to_str()
-    {
-        Some(name) => {
-            return name.to_string().to_lowercase();
-        }
-        None => {
-            panic!("There was an error parsing the file name!")
-        }
-    }
 }

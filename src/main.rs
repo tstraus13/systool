@@ -4,6 +4,7 @@ mod commands;
 mod file;
 mod functions;
 mod directory;
+mod text;
 
 use std::process::ExitCode;
 use clap::Parser;
@@ -11,6 +12,7 @@ use crate::commands::*;
 use crate::functions::*;
 use crate::file::*;
 use crate::directory::*;
+use crate::text::find_text;
 
 
 fn main() -> ExitCode {
@@ -51,6 +53,9 @@ fn main() -> ExitCode {
                 },
                 FindCommands::Directory(args) => {
                     find_dir(args)
+                },
+                FindCommands::Text(args) => {
+                    find_text(args)
                 }
             }
         }

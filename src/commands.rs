@@ -41,6 +41,6 @@ pub enum FindCommands {
     /// Find a directory
     #[clap(name = "dir")]
     Directory(FindDirectoryCommandArgs),
-    //// Find text within file contents
-    //Text()
+    // Find text within file contents
+    Text(FindTextCommandArgs)
 }

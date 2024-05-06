@@ -87,3 +87,15 @@ pub struct FindDirectoryCommandArgs {
     #[clap(name = "symlinks")]
     pub follow_symlinks: bool,
 }
+
+#[derive(Args, Debug)]
+pub struct FindTextCommandArgs {
+    /// Text to look for
+    pub text: String,
+    pub path: String,
+    #[arg(long)]
+    pub hidden: bool,
+    #[arg(short, long)]
+    #[clap(name = "symlinks")]
+    pub follow_symlinks: bool,
+}
