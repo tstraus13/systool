@@ -5,6 +5,7 @@ mod file;
 mod functions;
 mod directory;
 mod text;
+mod archive;
 
 use std::process::ExitCode;
 use clap::Parser;
