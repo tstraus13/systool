@@ -19,7 +19,8 @@ pub enum Commands {
     /// System repositories package commands
     Package(PackageCommandArgs),
     /// Find command
-    Find(FindCommandArgs)
+    Find(FindCommandArgs),
+    Archive(ArchiveCommandArgs)
 }
 
 #[derive(Subcommand, Debug)]
@@ -43,4 +44,12 @@ pub enum FindCommands {
     Directory(FindDirectoryCommandArgs),
     // Find text within file contents
     Text(FindTextCommandArgs)
+}
+
+#[derive(Subcommand, Debug)]
+pub enum ArchiveCommands {
+    /// Create Archive File
+    Create(ArchiveCreateCommandArgs),
+    /// Extract Archive File
+    Extract(ArchiveExtractCommandArgs)
 }

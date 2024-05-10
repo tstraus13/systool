@@ -99,3 +99,32 @@ pub struct FindTextCommandArgs {
     #[clap(name = "symlinks")]
     pub follow_symlinks: bool,
 }
+
+#[derive(Args, Debug)]
+pub struct ArchiveCommandArgs {
+    #[command(subcommand)]
+    pub archive_commands: ArchiveCommands
+}
+
+#[derive(Args, Debug)]
+pub struct ArchiveCreateCommandArgs {
+    #[arg(short,long)]
+    #[clap(name = "source")]
+    pub src_path: String,
+    #[arg(short,long)]
+    #[clap(name = "destination")]
+    pub dst_path: String,
+    #[arg(short,long)]
+    #[clap(name = "name")]
+    pub file_name: String,
+}
+
+#[derive(Args, Debug)]
+pub struct ArchiveExtractCommandArgs {
+    #[arg(short,long)]
+    #[clap(name = "source")]
+    pub src_path: String,
+    #[arg(short,long)]
+    #[clap(name = "destination")]
+    pub dst_path: String,
+}
