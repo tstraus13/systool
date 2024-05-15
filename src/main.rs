@@ -9,6 +9,7 @@ mod archive;
 
 use std::process::ExitCode;
 use clap::Parser;
+use crate::archive::{create, extract};
 use crate::commands::*;
 use crate::functions::*;
 use crate::file::*;
@@ -57,6 +58,16 @@ fn main() -> ExitCode {
                 },
                 FindCommands::Text(args) => {
                     find_text(args)
+                }
+            }
+        }
+        Commands::Archive(args) => {
+            return match &args.archive_commands {
+                ArchiveCommands::Create(args) => {
+                    create(args)
+                },
+                ArchiveCommands::Extract(args) => {
+                    extract(args)
                 }
             }
         }
