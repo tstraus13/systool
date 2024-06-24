@@ -6,7 +6,7 @@ pub mod ubuntu;
 pub mod fedora;
 pub mod void;
 pub mod arch;
-mod gentoo;
+pub mod gentoo;
 
 pub trait System {
     fn refresh(&self, command_args:&RefreshCommandArgs) -> ExitCode;

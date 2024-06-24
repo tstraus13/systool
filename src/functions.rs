@@ -5,6 +5,7 @@ use crate::systems::fedora::Fedora;
 use crate::systems::macos::MacOS;
 use crate::systems::ubuntu::Ubuntu;
 use crate::systems::void::Void;
+use crate::systems::gentoo::Gentoo;
 
 pub fn which(command: &str) -> String {
     let which_result = Command::new("which")
@@ -69,6 +70,10 @@ pub fn detect_system() ->  Box<dyn System> {
                                 println!("Void Detected!");
                                 return Box::new(Arch)
                             }
+                            x if x.contains("gentoo") => {
+                                println!("Gentoo Detected!");
+                                return Box::new(Gentoo);
+                            }
                             _ => {}
                         }
                     }
@@ -110,6 +115,10 @@ pub fn detect_system() ->  Box<dyn System> {
                             x if x.contains("fc38") || x.contains("fc37") => {
                                 println!("Fedora Detected!");
                                 return Box::new(Fedora)
+                            },
+                            x if x.contains("gentoo") => {
+                                println!("Gentoo Detected!");
+                                return Box::new(Gentoo);
                             }
                             _ => panic!("Could not detect system! Exiting...")
                         }

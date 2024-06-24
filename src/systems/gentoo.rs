@@ -6,7 +6,7 @@ use crate::systems::System;
 pub struct Gentoo;
 
 impl System for Gentoo {
-    fn refresh(&self, command_args: &RefreshCommandArgs) -> ExitCode {
+    fn refresh(&self, refresh_args: &RefreshCommandArgs) -> ExitCode {
         let mut args: Vec<&str> = Vec::new();
 
         args.push("--sync");
@@ -15,7 +15,7 @@ impl System for Gentoo {
         let mut refresh = Command::new(refresh_command_path);
         refresh.args(&args);
 
-        if command_args.output {
+        if refresh_args.output {
             refresh
                 .stdout(Stdio::inherit())
                 .stderr(Stdio::inherit());
@@ -37,8 +37,49 @@ impl System for Gentoo {
         }
     }
 
-    fn upgrade(&self, command_args: &UpgradeCommandArgs) -> ExitCode {
-        todo!()
+    fn upgrade(&self, upgrade_args: &UpgradeCommandArgs) -> ExitCode {
+        let mut args: Vec<&str> = Vec::new();
+
+        let upgrade_command_path = which("emerge");
+        let mut upgrade = Command::new(upgrade_command_path);
+        upgrade.stdin(Stdio::inherit());
+        
+        if !upgrade_args.force {
+            args.push("--ask");
+            args.push("--verbose");
+            upgrade
+                .stdout(Stdio::inherit())
+                .stderr(Stdio::inherit());
+        }
+
+        else if upgrade_args.output {
+            args.push("--verbose");
+            upgrade
+                .stdout(Stdio::inherit())
+                .stderr(Stdio::inherit());
+        }
+
+        args.push("--update");
+        args.push("--deep");
+        args.push("--newuse");
+        args.push("@world");
+
+        upgrade.args(&args);
+
+        let upgrade_result = upgrade.output();
+
+        match upgrade_result {
+            Ok(output) => {
+                println!("Upgrade Complete!");
+                return match output.status.code() {
+                    Some(code) => ExitCode::from(code as u8),
+                    None => ExitCode::FAILURE
+                }
+            }
+            Err(why) => {
+                panic!("There was an issue running the upgrade process!\n\n{:?}", why);
+            }
+        }
     }
 
     fn package_search(&self, command_args: &PackageSearchCommandArgs) -> ExitCode {
