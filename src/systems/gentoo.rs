@@ -43,7 +43,7 @@ impl System for Gentoo {
         let upgrade_command_path = which("emerge");
         let mut upgrade = Command::new(upgrade_command_path);
         upgrade.stdin(Stdio::inherit());
-        
+
         if !upgrade_args.force {
             args.push("--ask");
             args.push("--verbose");
