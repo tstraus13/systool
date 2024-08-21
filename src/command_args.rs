@@ -1,4 +1,4 @@
-use clap::Args;
+use clap::{Args};
 use crate::archive::ArchiveType;
 use crate::commands::*;
 
@@ -115,12 +115,12 @@ pub struct ArchiveCreateCommandArgs {
     #[arg(short,long)]
     #[clap(name = "destination")]
     pub dst_path: String,
-    #[arg(short,long)]
-    #[clap(name = "name")]
-    pub file_name: String,
-    #[arg(short,long)]
-    #[clap(name = "type")]
-    pub archive_type: ArchiveType
+    // #[arg(short,long)]
+    // #[clap(name = "name")]
+    // pub file_name: String,
+    // #[arg(short,long)]
+    // #[clap(name = "type")]
+    // pub archive_type: ArchiveType
 }
 
 #[derive(Args, Debug)]

@@ -20,6 +20,7 @@ pub enum Commands {
     Package(PackageCommandArgs),
     /// Find command
     Find(FindCommandArgs),
+    /// Create/Extract Archive files
     Archive(ArchiveCommandArgs)
 }
 

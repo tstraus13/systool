@@ -64,16 +64,15 @@ pub fn detect_system() ->  Box<dyn System> {
                             x if x.contains("voidlinux") => {
                                 println!("Void Detected!");
                                 return Box::new(Void)
-                            }
-                            ,
+                            },
                             x if x.contains("arch") => {
-                                println!("Void Detected!");
+                                println!("Arch Detected!");
                                 return Box::new(Arch)
-                            }
+                            },
                             x if x.contains("gentoo") => {
                                 println!("Gentoo Detected!");
                                 return Box::new(Gentoo);
-                            }
+                            },
                             _ => {}
                         }
                     }
@@ -119,7 +118,7 @@ pub fn detect_system() ->  Box<dyn System> {
                             x if x.contains("gentoo") => {
                                 println!("Gentoo Detected!");
                                 return Box::new(Gentoo);
-                            }
+                            },
                             _ => panic!("Could not detect system! Exiting...")
                         }
                     }

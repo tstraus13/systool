@@ -25,7 +25,7 @@ fn main() -> ExitCode {
 
     let system = detect_system();
 
-    return match &cli.command {
+    match &cli.command {
         Commands::Refresh(args) => {
             system.refresh(args)
         }
@@ -49,7 +49,7 @@ fn main() -> ExitCode {
             }
         }
         Commands::Find(args) => {
-            return match &args.find_commands {
+            match &args.find_commands {
                 FindCommands::File(args) => {
                     find_file(args)
                 },
@@ -62,7 +62,7 @@ fn main() -> ExitCode {
             }
         }
         Commands::Archive(args) => {
-            return match &args.archive_commands {
+            match &args.archive_commands {
                 ArchiveCommands::Create(args) => {
                     create(args)
                 },
