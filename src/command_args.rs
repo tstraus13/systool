@@ -1,5 +1,4 @@
 use clap::{Args};
-use crate::archive::ArchiveType;
 use crate::commands::*;
 
 #[derive(Args, Debug)]

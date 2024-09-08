@@ -18,7 +18,7 @@ pub fn which(command: &str) -> String {
 
             match path_result {
                 Ok(path) => {
-                    return path.trim().to_string();
+                    path.trim().to_string()
                 }
                 Err(why) => {
                     panic!("There was an error parsing the output of the which command!\n\n{}", why);

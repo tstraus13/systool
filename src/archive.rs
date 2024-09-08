@@ -1,4 +1,5 @@
 use std::process::{Command, ExitCode, Stdio};
+use std::path::Path;
 use serde::Serialize;
 use crate::command_args::{ArchiveCreateCommandArgs, ArchiveExtractCommandArgs};
 use crate::functions::which;
@@ -12,10 +13,8 @@ fn create_zip(args: &ArchiveCreateCommandArgs) -> ExitCode {
 
     let mut zip_args: Vec<&str> = Vec::new();
 
-    let dst = format!("{}/{}", args.dst_path, args.file_name);
-
     zip_args.push("-r");
-    zip_args.push(&*dst);
+    zip_args.push(&*args.dst_path);
     zip_args.push(&*args.src_path);
 
     let mut zip = Command::new(zip_path);
@@ -76,32 +75,88 @@ fn extract_zip(args: &ArchiveExtractCommandArgs) -> ExitCode {
     }
 }
 
-fn create_rar() {
-    let uz_path = which("rar");
+fn create_rar(args: &ArchiveCreateCommandArgs) -> ExitCode {
+    let rar_path = which("rar");
 
-    if uz_path.is_empty() {
+    if rar_path.is_empty() {
         panic!("rar not found! Please install before attempting to extract a zip archive.");
     }
-}
 
-fn extract_rar() {
-    let uz_path = which("unrar");
+    let mut rar_args: Vec<&str> = Vec::new();
 
-    if uz_path.is_empty() {
-        panic!("unrar not found! Please install before attempting to extract a zip archive.");
+    rar_args.push("a");
+    rar_args.push(&*args.dst_path);
+    rar_args.push(&*args.src_path);
+
+    let mut rar = Command::new(rar_path);
+    rar.args(&rar_args);
+
+    rar
+        .stdout(Stdio::inherit())
+        .stderr(Stdio::inherit());
+
+    let rar_result = rar.output();
+
+    match rar_result {
+        Ok(output) => {
+            match output.status.code() {
+                Some(code) => ExitCode::from(code as u8),
+                None => ExitCode::FAILURE
+            }
+        }
+        Err(why) => {
+            panic!("There was an issue running the rar command!\n\n{:?}", why);
+        }
     }
 }
 
-fn create_7z() {
-    
+fn extract_rar(args: &ArchiveExtractCommandArgs) -> ExitCode {
+    let unrar_path = which("unrar");
+
+    if unrar_path.is_empty() {
+        panic!("unrar not found! Please install before attempting to extract a zip archive.");
+    }
+
+    let mut unrar_args: Vec<&str> = Vec::new();
+
+    unrar_args.push("x");
+    unrar_args.push(&*args.src_path);
+    unrar_args.push(&*args.dst_path);
+
+    let mut unrar = Command::new(unrar_path);
+    unrar.args(&unrar_args);
+
+    unrar
+        .stdout(Stdio::inherit())
+        .stderr(Stdio::inherit());
+
+    let unrar_result = unrar.output();
+
+    match unrar_result {
+        Ok(output) => {
+            match output.status.code() {
+                Some(code) => ExitCode::from(code as u8),
+                None => ExitCode::FAILURE
+            }
+        }
+        Err(why) => {
+            panic!("There was an issue running the rar command!\n\n{:?}", why);
+        }
+    }
+}
+
+fn create_7z(args: &ArchiveCreateCommandArgs) -> ExitCode {
+
+    ExitCode::SUCCESS
 }
 
 fn extract_7z() {
 
 }
 
-fn create_tar() {
-    
+fn create_tar(args: &ArchiveCreateCommandArgs, compress_bz2: bool, compress_gz: bool) -> ExitCode {
+
+    ExitCode::SUCCESS
 }
 
 fn extract_tar() {
@@ -117,22 +172,49 @@ pub fn extract(args: &ArchiveExtractCommandArgs) -> ExitCode {
 
 pub fn create(args: &ArchiveCreateCommandArgs) -> ExitCode {
 
-    match args.archive_type {
-        ArchiveType::Zip => {
-            create_zip(args)
-        },
-        _ => ExitCode::SUCCESS
+    let dst_path = Path::new(&args.dst_path);
+
+    let filename_opt = dst_path.file_name();
+
+    let filename = match filename_opt {
+        None => panic!("Unable to get filename from source path!"),
+        Some(filename) => {
+            match filename.to_str() {
+                None => panic!("Unable to convert filename to string!"),
+                Some(filename) => filename
+            }
+        }
+    };
+
+    if filename.to_lowercase().contains(".zip") {
+        create_zip(args)
     }
-
-    //return ExitCode::SUCCESS;
+    else if filename.to_lowercase().contains(".rar") {
+        create_rar(args)
+    }
+    else if filename.to_lowercase().contains(".7z") {
+        create_7z(args)
+    }
+    else if filename.to_lowercase().contains(".tar") {
+        create_tar(args, false, false)
+    }
+    else if filename.to_lowercase().contains(".tar.gz") {
+        create_tar(args, false, true)
+    }
+    else if filename.to_lowercase().contains(".tar.bz2") {
+        create_tar(args, true, false)
+    }
+    else {
+        ExitCode::FAILURE
+    }
 }
 
-#[derive(Debug, clap::ValueEnum, Clone, Serialize)]
-pub enum ArchiveType {
-    Zip,
-    Rar,
-    P7Zip,
-    Tar,
-    TarGz,
-    TarBz2
-}
+// #[derive(Debug, clap::ValueEnum, Clone, Serialize)]
+// pub enum ArchiveType {
+//     Zip,
+//     Rar,
+//     P7Zip,
+//     Tar,
+//     TarGz,
+//     TarBz2
+// }
