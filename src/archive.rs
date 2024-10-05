@@ -208,13 +208,3 @@ pub fn create(args: &ArchiveCreateCommandArgs) -> ExitCode {
         ExitCode::FAILURE
     }
 }
-
-// #[derive(Debug, clap::ValueEnum, Clone, Serialize)]
-// pub enum ArchiveType {
-//     Zip,
-//     Rar,
-//     P7Zip,
-//     Tar,
-//     TarGz,
-//     TarBz2
-// }
