@@ -29,7 +29,7 @@ impl Gentoo {
         let depclean_result = depclean.output();
 
         match depclean_result {
-            Ok(output) => {
+            Ok(_) => {
                 println!("{}", "Depclean Complete!".bold());
             }
             Err(why) => {

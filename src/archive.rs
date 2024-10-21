@@ -1,6 +1,5 @@
 use std::process::{Command, ExitCode, Stdio};
 use std::path::Path;
-use serde::Serialize;
 use crate::command_args::{ArchiveCreateCommandArgs, ArchiveExtractCommandArgs};
 use crate::functions::which;
 
@@ -79,7 +78,7 @@ fn create_rar(args: &ArchiveCreateCommandArgs) -> ExitCode {
     let rar_path = which("rar");
 
     if rar_path.is_empty() {
-        panic!("rar not found! Please install before attempting to extract a zip archive.");
+        panic!("rar not found! Please install before attempting to extract a rar archive.");
     }
 
     let mut rar_args: Vec<&str> = Vec::new();
@@ -114,7 +113,7 @@ fn extract_rar(args: &ArchiveExtractCommandArgs) -> ExitCode {
     let unrar_path = which("unrar");
 
     if unrar_path.is_empty() {
-        panic!("unrar not found! Please install before attempting to extract a zip archive.");
+        panic!("unrar not found! Please install before attempting to extract a rar archive.");
     }
 
     let mut unrar_args: Vec<&str> = Vec::new();
@@ -146,12 +145,76 @@ fn extract_rar(args: &ArchiveExtractCommandArgs) -> ExitCode {
 }
 
 fn create_7z(args: &ArchiveCreateCommandArgs) -> ExitCode {
+    let z7_path = which("7zip");
 
-    ExitCode::SUCCESS
+    if z7_path.is_empty() {
+        panic!("7zip not found! Please install before attempting to extract a 7zip archive.");
+    }
+
+    let mut z7_args: Vec<&str> = Vec::new();
+
+    z7_args.push("a");
+    z7_args.push(&*args.dst_path);
+    z7_args.push(&*args.src_path);
+
+    let mut z7 = Command::new(z7_path);
+    z7.args(&z7_args);
+
+    z7
+        .stdout(Stdio::inherit())
+        .stderr(Stdio::inherit());
+
+    let z7_result = z7.output();
+
+    match z7_result {
+        Ok(output) => {
+            match output.status.code() {
+                Some(code) => ExitCode::from(code as u8),
+                None => ExitCode::FAILURE
+            }
+        }
+        Err(why) => {
+            panic!("There was an issue running the 7zip command!\n\n{:?}", why);
+        }
+    }
 }
 
-fn extract_7z() {
+fn extract_7z(args: &ArchiveExtractCommandArgs) -> ExitCode {
 
+    let z7_path = which("7zip");
+
+    if z7_path.is_empty() {
+        panic!("7zip not found! Please install before attempting to extract a 7zip archive.");
+    }
+
+    let mut z7_args: Vec<&str> = Vec::new();
+    let dst_path = &*["-o", &*args.dst_path].join("");
+
+    z7_args.push("x");
+    z7_args.push(&*args.src_path);
+    z7_args.push(dst_path);
+
+
+    let mut z7 = Command::new(z7_path);
+    z7.args(&z7_args);
+
+    z7
+        .stdout(Stdio::inherit())
+        .stderr(Stdio::inherit());
+
+    let z7_result = z7.output();
+
+    match z7_result {
+        Ok(output) => {
+            match output.status.code() {
+                Some(code) => ExitCode::from(code as u8),
+                None => ExitCode::FAILURE
+            }
+        }
+        Err(why) => {
+            panic!("There was an issue running the 7zip command!\n\n{:?}", why);
+        }
+    }
 }
 
 fn create_tar(args: &ArchiveCreateCommandArgs, compress_bz2: bool, compress_gz: bool) -> ExitCode {
@@ -159,15 +222,42 @@ fn create_tar(args: &ArchiveCreateCommandArgs, compress_bz2: bool, compress_gz: 
     ExitCode::SUCCESS
 }
 
-fn extract_tar() {
+fn extract_tar(args: &ArchiveExtractCommandArgs) -> ExitCode {
 
+    ExitCode::SUCCESS
 }
 
 pub fn extract(args: &ArchiveExtractCommandArgs) -> ExitCode {
 
-    extract_zip(args)
+    let src_path = Path::new(&args.src_path);
 
-    //return ExitCode::SUCCESS
+    let filename_opt = src_path.file_name();
+
+    let filename = match filename_opt {
+        None => panic!("Unable to get filename from source path!"),
+        Some(filename) => {
+            match filename.to_str() {
+                None => panic!("Unable to convert filename to string!"),
+                Some(filename) => filename
+            }
+        }
+    };
+
+    if filename.to_lowercase().contains(".zip") {
+        extract_zip(args)
+    }
+    else if filename.to_lowercase().contains(".rar") {
+        extract_rar(args)
+    }
+    else if filename.to_lowercase().contains(".7z") {
+        extract_7z(args)
+    }
+    else if filename.to_lowercase().contains(".tar") {
+        extract_tar(args)
+    }
+    else {
+        ExitCode::FAILURE
+    }
 }
 
 pub fn create(args: &ArchiveCreateCommandArgs) -> ExitCode {
@@ -177,7 +267,7 @@ pub fn create(args: &ArchiveCreateCommandArgs) -> ExitCode {
     let filename_opt = dst_path.file_name();
 
     let filename = match filename_opt {
-        None => panic!("Unable to get filename from source path!"),
+        None => panic!("Unable to get filename from destination path!"),
         Some(filename) => {
             match filename.to_str() {
                 None => panic!("Unable to convert filename to string!"),
