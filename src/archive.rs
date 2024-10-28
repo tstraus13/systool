@@ -224,7 +224,47 @@ fn create_tar(args: &ArchiveCreateCommandArgs, compress_bz2: bool, compress_gz: 
 
 fn extract_tar(args: &ArchiveExtractCommandArgs) -> ExitCode {
 
-    ExitCode::SUCCESS
+    let tar_path = which("tar");
+
+    if tar_path.is_empty() {
+        panic!("tar not found! Please install before attempting to extract a tar archive.");
+    }
+
+    let mut tar_args: Vec<&str> = Vec::new();
+
+    if args.src_path.contains(".bz2") {
+        tar_args.push("-xvjf");
+    }
+    else if args.src_path.contains(".gz") {
+        tar_args.push("-xvzf");
+    }
+    else {
+        tar_args.push("-xvf");
+    }
+
+    tar_args.push(&*args.src_path);
+    tar_args.push(&*args.dst_path);
+    
+    let mut tar = Command::new(tar_path);
+    tar.args(&tar_args);
+
+    tar
+        .stdout(Stdio::inherit())
+        .stderr(Stdio::inherit());
+
+    let tar_result = tar.output();
+
+    match tar_result {
+        Ok(output) => {
+            match output.status.code() {
+                Some(code) => ExitCode::from(code as u8),
+                None => ExitCode::FAILURE
+            }
+        }
+        Err(why) => {
+            panic!("There was an issue running the 7zip command!\n\n{:?}", why);
+        }
+    }
 }
 
 pub fn extract(args: &ArchiveExtractCommandArgs) -> ExitCode {
@@ -276,23 +316,23 @@ pub fn create(args: &ArchiveCreateCommandArgs) -> ExitCode {
         }
     };
 
-    if filename.to_lowercase().contains(".zip") {
+    if filename.to_lowercase().ends_with(".zip") {
         create_zip(args)
     }
-    else if filename.to_lowercase().contains(".rar") {
+    else if filename.to_lowercase().ends_with(".rar") {
         create_rar(args)
     }
-    else if filename.to_lowercase().contains(".7z") {
+    else if filename.to_lowercase().ends_with(".7z") {
         create_7z(args)
     }
-    else if filename.to_lowercase().contains(".tar") {
-        create_tar(args, false, false)
-    }
-    else if filename.to_lowercase().contains(".tar.gz") {
+    else if filename.to_lowercase().ends_with(".tar.gz") {
         create_tar(args, false, true)
     }
-    else if filename.to_lowercase().contains(".tar.bz2") {
+    else if filename.to_lowercase().ends_with(".tar.bz2") {
         create_tar(args, true, false)
+    }
+    else if filename.to_lowercase().ends_with(".tar") {
+        create_tar(args, false, false)
     }
     else {
         ExitCode::FAILURE
