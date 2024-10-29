@@ -50,7 +50,7 @@ impl System for Arch {
         upgrade.args(&args);
         upgrade.stdin(Stdio::inherit());
 
-        if upgrade_args.output {
+        if upgrade_args.output || !upgrade_args.force {
             upgrade
                 .stdout(Stdio::inherit())
                 .stderr(Stdio::inherit());

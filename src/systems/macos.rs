@@ -47,7 +47,7 @@ impl System for MacOS {
         let mut upgrade = Command::new(upgrade_command_path);
         upgrade.args(&args);
 
-        if upgrade_args.output {
+        if upgrade_args.output || !upgrade_args.force {
             upgrade
                 .stdout(Stdio::inherit())
                 .stderr(Stdio::inherit());
