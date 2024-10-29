@@ -94,7 +94,7 @@ fn traverse(command_args: &FindDirectoryCommandArgs, found_items: &mut Vec<Strin
 
 fn proc_dir(entry: DirEntry, current_args: &FindDirectoryCommandArgs, found_items: &mut Vec<String>) {
     if dir_name_lowercase(&entry).contains(&current_args.directory_name.to_lowercase()) {
-        println!("{} {}", "FOUND!".bold(), entry.path().to_str().unwrap().to_string());
+        println!("{} {}", "FOUND!".bold().yellow(), entry.path().to_str().unwrap().to_string());
         found_items.push(entry.path().to_str().unwrap().to_string())
     }
 

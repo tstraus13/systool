@@ -11,10 +11,10 @@ pub fn find_file(command_args: &FindFileCommandArgs) -> ExitCode {
     traverse(command_args, found_items);
 
     if found_items.is_empty() {
-        return ExitCode::FAILURE;
+        return ExitCode::FAILURE
     }
 
-    return ExitCode::SUCCESS;
+    ExitCode::SUCCESS
 }
 
 fn traverse(command_args: &FindFileCommandArgs, found_items: &mut Vec<String>) {
@@ -93,7 +93,7 @@ fn traverse(command_args: &FindFileCommandArgs, found_items: &mut Vec<String>) {
 
 fn proc_file(entry: DirEntry, args: &FindFileCommandArgs, found_items: &mut Vec<String>) {
     if file_name_lowercase(&entry).contains(&args.file_name.to_lowercase()) {
-        println!("{} {}", "FOUND!".bold(), entry.path().to_str().unwrap().to_string());
+        println!("{} {}", "FOUND!".bold().yellow(), entry.path().to_str().unwrap().to_string());
         found_items.push(entry.path().to_str().unwrap().to_string())
     }
 }
