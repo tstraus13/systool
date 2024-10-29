@@ -93,38 +93,50 @@ fn traverse(command_args: &FindTextCommandArgs, found_items: &mut Vec<String>) {
 
 fn proc_file(entry: DirEntry, args: &FindTextCommandArgs, found_items: &mut Vec<String>) {
 
-    if !binaryornot::is_binary(entry.path()).expect("Unable to read file!") {
-        let contents = fs::read_to_string(entry.path())
-            .expect("Unable to read file!");
+    let path_bind = entry.path();
+    let path = path_bind.to_str();
 
-        let found = contents.to_lowercase().contains(&args.text);
+    match path {
+        Some(path) => {
 
-        if found {
+            let is_binary = binaryornot::is_binary(path)
+                .unwrap_or(true);
+            
+            if !is_binary {
+                let contents = fs::read_to_string(path)
+                    .unwrap_or_else(|_| String::from(""));
 
-            println!("{} {}", "FOUND!".bold(), entry.path().to_str().unwrap().to_string());
+                let found = contents.to_lowercase().contains(&args.text);
 
-            found_items.push(entry.path().to_str().unwrap().to_string());
+                if found {
 
-            for (i, line) in contents.lines().enumerate() {
+                    println!("{} {}", "FOUND!".bold(), entry.path().to_str().unwrap().to_string());
 
-                let line_lower = line.to_lowercase();
-                let text_lower = args.text.to_lowercase();
+                    found_items.push(entry.path().to_str().unwrap().to_string());
 
-                if line_lower.contains(&args.text) {
+                    for (i, line) in contents.lines().enumerate() {
 
-                    let text_len = text_lower.len();
-                    let text_start = line_lower.find(&text_lower).unwrap();
+                        let line_lower = line.to_lowercase();
+                        let text_lower = args.text.to_lowercase();
 
-                    let start = &line[..text_start];
-                    let matched = &line[text_start..(text_start + text_len)]
-                        .bold().yellow();
-                    let end = &line[(text_start + text_len)..];
+                        if line_lower.contains(&args.text) {
 
-                    println!("\t{}: {}{}{}", (i + 1).to_string().bold(), start, matched, end);
+                            let text_len = text_lower.len();
+                            let text_start = line_lower.find(&text_lower).unwrap();
+
+                            let start = &line[..text_start];
+                            let matched = &line[text_start..(text_start + text_len)]
+                                .bold().yellow();
+                            let end = &line[(text_start + text_len)..];
+
+                            println!("\t{}: {}{}{}", (i + 1).to_string().bold(), start, matched, end);
+                        }
+                    }
+                    println!();
                 }
             }
-            println!();
-        }
+        },
+        None => {}
     }
 }
 
