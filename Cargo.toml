@@ -9,5 +9,5 @@ edition = "2021"
 clap = { version = "4.5.20", features = ["derive"] }
 rayon = { version = "1.10.0" }
 binaryornot = { git = "https://github.com/tstraus13/binaryornot" }
-colored = "2.1.0"
+colored = "3.0.0"
 serde = { version = "1.0.214", features = ["derive"] }

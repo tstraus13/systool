@@ -1,11 +1,11 @@
+use crate::command_args::FindTextCommandArgs;
+use colored::*;
 use std::fs;
 use std::fs::DirEntry;
 use std::process::ExitCode;
-use colored::*;
-use crate::command_args::{FindTextCommandArgs};
+use std::time::Instant;
 
 pub fn find_text(command_args: &FindTextCommandArgs) -> ExitCode {
-
     let found_items = &mut Vec::new();
 
     traverse(command_args, found_items);
@@ -13,12 +13,11 @@ pub fn find_text(command_args: &FindTextCommandArgs) -> ExitCode {
     if found_items.is_empty() {
         return ExitCode::FAILURE;
     }
-
+    
     return ExitCode::SUCCESS;
 }
 
 fn traverse(command_args: &FindTextCommandArgs, found_items: &mut Vec<String>) {
-
     rayon::scope(|scope| {
         scope.spawn(|_| {
 
@@ -92,21 +91,20 @@ fn traverse(command_args: &FindTextCommandArgs, found_items: &mut Vec<String>) {
 }
 
 fn proc_file(entry: DirEntry, args: &FindTextCommandArgs, found_items: &mut Vec<String>) {
-
     let path_bind = entry.path();
     let path = path_bind.to_str();
+    let text_lower = args.text.to_lowercase();
+    let text_len = text_lower.len();
 
     match path {
         Some(path) => {
+            let is_binary = binaryornot::is_binary(path).unwrap_or(true);
 
-            let is_binary = binaryornot::is_binary(path)
-                .unwrap_or(true);
-            
             if !is_binary {
                 let contents = fs::read_to_string(path)
                     .unwrap_or_else(|_| String::from(""));
 
-                let found = contents.to_lowercase().contains(&args.text);
+                let found = contents.to_lowercase().contains(&text_lower);
 
                 if found {
 
@@ -115,13 +113,10 @@ fn proc_file(entry: DirEntry, args: &FindTextCommandArgs, found_items: &mut Vec<
                     found_items.push(entry.path().to_str().unwrap().to_string());
 
                     for (i, line) in contents.lines().enumerate() {
-
                         let line_lower = line.to_lowercase();
-                        let text_lower = args.text.to_lowercase();
 
-                        if line_lower.contains(&args.text) {
+                        if line_lower.contains(&text_lower) {
 
-                            let text_len = text_lower.len();
                             let text_start = line_lower.find(&text_lower).unwrap();
 
                             let start = &line[..text_start];
@@ -129,13 +124,14 @@ fn proc_file(entry: DirEntry, args: &FindTextCommandArgs, found_items: &mut Vec<
                                 .bold().yellow();
                             let end = &line[(text_start + text_len)..];
 
-                            println!("\t{}: {}{}{}", (i + 1).to_string().bold(), start, matched, end);
+                            println!("\t{},{}: {}{}{}", (i + 1).to_string().bold(), (text_start + 1).to_string().bold(), start, matched, end);
                         }
                     }
+                    
                     println!();
                 }
             }
-        },
+        }
         None => {}
     }
 }
@@ -145,7 +141,7 @@ fn proc_dir(entry: DirEntry, current_args: &FindTextCommandArgs, found_items: &m
         text: current_args.text.to_string(),
         path: entry.path().to_str().unwrap().to_string(),
         hidden: current_args.hidden,
-        follow_symlinks: current_args.follow_symlinks
+        follow_symlinks: current_args.follow_symlinks,
     };
     traverse(&new_args, found_items);
 }
