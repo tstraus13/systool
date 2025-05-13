@@ -3,7 +3,6 @@ use colored::*;
 use std::fs;
 use std::fs::DirEntry;
 use std::process::ExitCode;
-use std::time::Instant;
 
 pub fn find_text(command_args: &FindTextCommandArgs) -> ExitCode {
     let found_items = &mut Vec::new();

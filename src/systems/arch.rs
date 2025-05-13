@@ -5,12 +5,13 @@ use crate::functions::*;
 pub struct Arch;
 
 impl System for Arch {
+
     fn refresh(&self, command_args:&RefreshCommandArgs) -> ExitCode {
         let mut args: Vec<&str> = Vec::new();
 
         args.push("-Syy");
 
-        let refresh_command_path = which("pacman");
+        let refresh_command_path = get_pkg_manager();
         let mut refresh = Command::new(refresh_command_path);
         refresh.args(&args);
 
@@ -45,7 +46,7 @@ impl System for Arch {
             args.push("--noconfirm");
         }
 
-        let upgrade_command_path = which("pacman");
+        let upgrade_command_path = get_pkg_manager();
         let mut upgrade = Command::new(upgrade_command_path);
         upgrade.args(&args);
         upgrade.stdin(Stdio::inherit());
@@ -78,7 +79,7 @@ impl System for Arch {
         args.push("-Ssy");
         args.push(&pkg_search_args.package_name);
 
-        let search_command_path = which("pacman");
+        let search_command_path = get_pkg_manager();
         let mut search = Command::new(search_command_path);
         search.args(&args);
         search
@@ -106,7 +107,7 @@ impl System for Arch {
         args.push("-Siy");
         args.push(&pkg_info_args.package_name);
 
-        let info_command_path = which("pacman");
+        let info_command_path = get_pkg_manager();
         let mut info = Command::new(info_command_path);
         info.args(&args);
         info
@@ -140,7 +141,7 @@ impl System for Arch {
             args.push(package);
         }
 
-        let install_command_path = which("pacman");
+        let install_command_path = get_pkg_manager();
         let mut install = Command::new(install_command_path);
         install.args(&args);
         install
@@ -175,7 +176,7 @@ impl System for Arch {
             args.push(package);
         }
 
-        let remove_command_path = which("pacman");
+        let remove_command_path = get_pkg_manager();
         let mut remove = Command::new(remove_command_path);
         remove.args(&args);
         remove
@@ -197,4 +198,23 @@ impl System for Arch {
             }
         }
     }
+}
+
+fn get_pkg_manager() -> String {
+
+    let yay_path = which("yay");
+
+    if !String::is_empty(&yay_path) {
+        println!("yay found!");
+        return yay_path;
+    }
+    
+    let paru_path = which("paru");
+    
+    if !String::is_empty(&paru_path) {
+        println!("paru found!");
+        return paru_path;
+    }
+
+    which("pacman")
 }
